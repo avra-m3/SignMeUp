@@ -10,3 +10,4 @@ RUN pip install -r /tmp/requirements.txt
 COPY api /app
 COPY nginx.conf /etc/nginx/conf.d/upload.conf
 
+COPY web /app/static
