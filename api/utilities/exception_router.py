@@ -56,6 +56,20 @@ class APIException(Exception):
         return response
 
 
-class ParseError(APIException):
+class BadRequest(APIException):
     _status = 400
     _detail = "Bad Request"
+
+
+class NotAcceptable(APIException):
+    _status = 406
+    _detail = "Not Acceptable"
+
+
+class PreconditionFailed(APIException):
+    _status = 412
+    _detail = "Precondition Failed"
+
+class Conflict(APIException):
+    _status = 409
+    _detail = "Conflict"

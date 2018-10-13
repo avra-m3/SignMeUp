@@ -13,7 +13,7 @@ RUN npm run build
 FROM tiangolo/uwsgi-nginx-flask:python3.6
 EXPOSE 9090
 
-RUN apt-get update && apt-get install libzbar0 -y
+RUN apt-get update && apt-get install libzbar-dev libzbar0 -y
 
 COPY requirements.txt /tmp
 RUN pip install -r /tmp/requirements.txt

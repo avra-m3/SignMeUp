@@ -2,7 +2,7 @@ from typing import List, Tuple, Optional
 
 from flask import Flask, request
 
-from utilities.exception_router import ParseError, APIException
+from utilities.exception_router import BadRequest, APIException
 
 
 class Route:
@@ -50,14 +50,14 @@ class Route:
                     except Exception:
                         errstr = "Request param {} was not the expected type ({})".format(param,
                                                                                           context[param][0].__str__())
-                        raise ParseError(errstr)
+                        raise BadRequest(errstr)
             for key in context:
                 if context[key][1]:
                     kwargs[key] = None
                 else:
                     missing_args = ",".join([key for key in context if not context[key][1]])
                     errstr = "The following parameters were missing from the request url: {}".format(missing_args)
-                    raise ParseError(errstr)
+                    raise BadRequest(errstr)
             return func(*args, **kwargs)
 
         self.call = wrapper
@@ -92,14 +92,14 @@ class Route:
                         errstr = "Request param {} was not the expected type ({})".format(argument,
                                                                                           context[argument][
                                                                                               0].__str__())
-                        raise ParseError(errstr)
+                        raise BadRequest(errstr)
             for key in context:
                 if context[key][1]:
                     kwargs[key] = None
                 else:
                     missing_args = ",".join([key for key in context if not context[key][1]])
                     errstr = "The following arguments were missing from the request body: {}".format(missing_args)
-                    raise ParseError(errstr)
+                    raise BadRequest(errstr)
             return func(*args, **kwargs)
 
         self.call = wrapper
