@@ -1,7 +1,7 @@
 import re
 from typing import List, Tuple
 
-from modules.image_processing.ocr.fileds import TextField
+from modules.image_processing.ocr.fields import TextField
 from modules.processor.processor_exceptions import ConflictError, FieldError
 
 
