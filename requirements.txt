@@ -4,3 +4,4 @@ flask-api
 opencv-python
 imutils==0.4.6
 pyzbar
+requests
