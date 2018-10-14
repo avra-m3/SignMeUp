@@ -1,7 +1,10 @@
+from threading import Thread
+
 from flask import Flask
 from flask_cors import CORS
 
 from modules.objects import index, register, PATHS
+from modules.processor.observer import watch
 from utilities.router import create_routes, Route
 
 app = Flask(__name__)
@@ -16,6 +19,9 @@ urls = [
 ]
 
 PATHS.create_dirs()
+
+observer = Thread(target=watch)
+
 create_routes(app, urls)
 
 if __name__ == '__main__':

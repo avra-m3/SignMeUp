@@ -7,10 +7,11 @@ from modules.processor.processor_exceptions import ConflictError, FieldError
 
 def get_card_data(user_id: str, data: dict) -> dict:
     text_data = data["responses"][0]["textAnnotations"][1:]
+    print("Analysing Data for s{}".format(user_id))
     user_id_field = get_user_id(user_id, text_data)
     fname_fields, lname_fields = get_name_fields(text_data)
     fname_fields = order_names(fname_fields, user_id_field)
-    lname_fields = order_names(lname_fields, fname_fields[-1])
+    lname_fields = order_names(lname_fields, user_id_field)
 
     user_id = str(user_id_field)
     first_name = " ".join([str(f) for f in fname_fields])
@@ -55,23 +56,24 @@ def get_name_fields(data: dict) -> Tuple[List[TextField], List[TextField]]:
         raise FieldError("Unable to identify a last name field")
 
 
-def order_names(fields: List[TextField], head: TextField):
-    unsorted = []
-    for field in fields:
-        if head.is_above(field):
-            unsorted.append(field)
-
+def order_names(fields: List[TextField], above_field: TextField):
+    unsorted = fields.copy()
     ordered = []
-    while len(unsorted) > 0:
+    head = above_field
+    flag = True
+    while flag:
         flag = False
-        for field in sorted(unsorted, key=head.v_distance_to):
-            if field.adjacent_to(head):
+        field = (list(filter(head.adjacent_to, unsorted)) or [None])[0]
+        if field is not None and head.adjacent_to(field):
+            head = field
+            flag = True
+        if not flag:
+            for field in sorted(filter(above_field.is_above, unsorted), key=above_field.v_distance_to):
                 head = field
                 flag = True
                 break
-        if not flag:
-            head = sorted(unsorted, key=head.v_distance_to)[0]
-        ordered.append(head)
-        unsorted.remove(head)
-
+        print(head)
+        if flag:
+            ordered.append(head)
+            unsorted.remove(head)
     return ordered

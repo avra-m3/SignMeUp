@@ -15,20 +15,24 @@ def process(path: str, file_id: str):
     try:
         begin_processing(path, file_id)
     except ProcessingException as ex:
+        print("EXCEPTION: {}".format(ex.exc))
         with open(os.path.join(PATHS.FAIL, file_id) + ".json", "w") as error_file:
             error_file.write(ex.json)
-        shutil.move(path, os.path.join(PATHS.FAIL, file_id))
+        shutil.copy(path, os.path.join(PATHS.FAIL, file_id))
+        os.remove(path)
 
 
 def begin_processing(path: str, file_id: str):
+    print("Requesting response for {}".format(file_id))
     response = request_ocr(path)
+    print("Received response for {}".format(file_id))
+    print(response.content)
     data = response.json()
 
-    user_id = re.match("21259(\d{7})\d{2}", file_id).group()[0]
-    if not data:
+    user_id = re.match("21259(\d{7})\d{2}", file_id).groups()[0]
+    if not data or response.status_code != 200:
         raise UpstreamError("No Data Returned")
     data_obj = get_card_data(user_id, data)
-    print(data)
     print(data_obj)
     shutil.move(path, os.path.join(PATHS.DONE, file_id))
     with open(os.path.join(PATHS.DONE, file_id + ".json"), "w") as output:
