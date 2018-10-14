@@ -16,7 +16,7 @@ class ProcessingException(Exception):
 
     @property
     def json(self):
-        json.dumps({
+        return json.dumps({
             "status": "failed",
             "error": self.exc,
             "message": self.detail
