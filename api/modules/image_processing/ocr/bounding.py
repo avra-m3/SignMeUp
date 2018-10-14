@@ -2,13 +2,13 @@ import json
 from typing import List
 
 from modules.image_processing.ocr.vertex import Vertex
-from modules.processor.processor_exceptions import FieldError
+from modules.processor.processor_exceptions import FieldError, BoundError
 
 
 class BoundingBox:
     def __init__(self, data: json):
         if len(data) != 4:
-            raise FieldError(data)
+            raise BoundError(data)
         self._points = [Vertex(**v) for v in data]
 
     @property

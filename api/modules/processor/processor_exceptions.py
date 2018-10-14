@@ -23,5 +23,13 @@ class ProcessingException(Exception):
         })
 
 
+class BoundError(ProcessingException):
+    _exc = "Bound Set Invalid"
+
+
 class FieldError(ProcessingException):
     _exc = "Field Not Found"
+
+
+class ConflictError(ProcessingException):
+    _exc = "Duplicate Fields Found"

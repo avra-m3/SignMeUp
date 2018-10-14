@@ -5,12 +5,12 @@ from modules.image_processing.ocr.bounding import BoundingBox
 
 class TextField:
     FLEX = 27
-    matcher = None
 
-    def __init__(self, data: json, type: str):
+    def __init__(self, data: json, type: str, matcher=None):
         self.raw = data
         self.bounds = BoundingBox(self.raw["boundingPoly"]["vertices"])
         self.type = type
+        self.matcher = matcher
 
     def get_value(self) -> str:
         return self.raw["description"]
@@ -45,7 +45,7 @@ class TextField:
         :return: TextField
         """
         origin = self.bounds
-        return origin.br.y - field.bounds.tr.y
+        return abs(origin.br.y - field.bounds.tr.y)
 
     def adjacent_to(self, field):
         """
