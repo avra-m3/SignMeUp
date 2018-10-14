@@ -20,16 +20,16 @@ class PATHS:
 
     @staticmethod
     def create_dirs():
-        if not os.path.exists(PATHS.ROOT):
+        if not os.path.isdir(PATHS.ROOT):
             os.mkdir(PATHS.ROOT)
-        if not os.path.exists(PATHS.TEMP):
+        if not os.path.isdir(PATHS.TEMP):
             os.mkdir(PATHS.TEMP)
-        if not os.path.exists(PATHS.QUEUED):
+        if not os.path.isdir(PATHS.QUEUED):
             os.mkdir(PATHS.QUEUED)
-        if not os.path.exists(PATHS.DONE):
+        if not os.path.isdir(PATHS.DONE):
             os.mkdir(PATHS.DONE)
-        if not os.path.exists(PATHS.PROCESSING):
-            os.mkdir(PATHS.DONE)
+        if not os.path.isdir(PATHS.PROCESSING):
+            os.mkdir(PATHS.PROCESSING)
 
 
 def index():
