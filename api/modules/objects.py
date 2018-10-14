@@ -15,6 +15,7 @@ class PATHS:
     QUEUED = "{}/queue".format(ROOT)
     PROCESSING = "{}/proc".format(ROOT)
     DONE = "{}/complete".format(ROOT)
+    FAIL = "{}/failed".format(ROOT)
 
     IMAGE_FORMATS = ["png", "jpg", "jpeg", "gif"]
 
@@ -30,6 +31,8 @@ class PATHS:
             os.mkdir(PATHS.DONE)
         if not os.path.isdir(PATHS.PROCESSING):
             os.mkdir(PATHS.PROCESSING)
+        if not os.path.isdir(PATHS.FAIL):
+            os.mkdir(PATHS.FAIL)
 
 
 def index():

@@ -15,7 +15,7 @@ class ProcessingException(Exception):
             self.exc = exc
 
     @property
-    def json(self):
+    def json(self) -> str:
         return json.dumps({
             "status": "failed",
             "error": self.exc,
@@ -33,3 +33,7 @@ class FieldError(ProcessingException):
 
 class ConflictError(ProcessingException):
     _exc = "Duplicate Fields Found"
+
+
+class UpstreamError(ProcessingException):
+    _exc = "Upstream API Failed"
