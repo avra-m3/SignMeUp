@@ -8,14 +8,15 @@ from flask_api import status
 from modules.image_processing import barcodes
 from utilities.exception_router import NotAcceptable, BadRequest, Conflict
 
-IMAGE_FORMATS = ["png", "jpg", "jpeg", "gif"]
-
 
 class PATHS:
     ROOT = "./processing"
     TEMP = "{}/uploaded".format(ROOT)
     QUEUED = "{}/queue".format(ROOT)
+    PROCESSING = "{}/proc".format(ROOT)
     DONE = "{}/complete".format(ROOT)
+
+    IMAGE_FORMATS = ["png", "jpg", "jpeg", "gif"]
 
     @staticmethod
     def create_dirs():
@@ -26,6 +27,8 @@ class PATHS:
         if not os.path.exists(PATHS.QUEUED):
             os.mkdir(PATHS.QUEUED)
         if not os.path.exists(PATHS.DONE):
+            os.mkdir(PATHS.DONE)
+        if not os.path.exists(PATHS.PROCESSING):
             os.mkdir(PATHS.DONE)
 
 
@@ -41,8 +44,8 @@ def register():
         raise NotAcceptable("The file passed had no file name")
 
     file_type = file.filename.rsplit(".", 1)[-1].lower()
-    if file_type not in IMAGE_FORMATS:
-        raise BadRequest("Image format was not in set of allowed formats {}.".format(", ".join(IMAGE_FORMATS)))
+    if file_type not in PATHS.IMAGE_FORMATS:
+        raise BadRequest("Image format was not in set of allowed formats {}.".format(", ".join(PATHS.IMAGE_FORMATS)))
     fpath = os.path.join(PATHS.TEMP, str(uuid.uuid4()) + "." + file_type)
     file.save(fpath)
 
