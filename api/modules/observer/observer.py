@@ -1,9 +1,9 @@
 import os
 import time
-from threading import Thread, current_thread
+from threading import Thread
 
-from modules.objects import PATHS
-from modules.processor.tools import process
+from modules.path_constants import PATHS
+from modules.observer.tools import process
 
 
 def watch():
@@ -17,7 +17,6 @@ def watch():
         files = os.listdir(PATHS.QUEUED)
         # Process files not in proc_list
         for file in [l for l in files if l not in proc_list.keys()]:
-
             path = os.path.join(PATHS.QUEUED, file)
             extension = file.rsplit(".", 1)[-1].lower()
             ctime = os.path.getctime(path)

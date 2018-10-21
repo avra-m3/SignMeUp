@@ -12,7 +12,7 @@ def decode(im):
     barcodes = pyzbar.decode(im)
     valid_barcodes = [b for b in barcodes if b.type == "CODE39" and valid_bacode_format.match(b.data.decode())]
     if len(valid_barcodes) != 1:
-        raise PreconditionFailed("Image was unclear or contained to much extra data.")
+        raise PreconditionFailed("Unable to identify a valid barcode in the given Image.")
     return valid_barcodes[0].data.decode()
 
 

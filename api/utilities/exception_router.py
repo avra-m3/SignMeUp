@@ -51,6 +51,7 @@ class APIException(Exception):
         }
         if exc.payload is not None:
             result["data"] = exc.payload
+        print(result)
         response = jsonify(result)
         response.status_code = exc.status
         return response
@@ -67,9 +68,22 @@ class NotAcceptable(APIException):
 
 
 class PreconditionFailed(APIException):
+    """
+    Note: This exception will return an empty response
+    For more information see: https://github.com/pallets/werkzeug/issues/1231
+
+    Solution:
+    Upgrade to v0.15 where https://github.com/pallets/werkzeug/pull/1255 will hopefully be in effect.
+    """
     _status = 412
     _detail = "Precondition Failed"
+
 
 class Conflict(APIException):
     _status = 409
     _detail = "Conflict"
+
+
+class NotFound(APIException):
+    _status = 404
+    _detail = "Not Found"

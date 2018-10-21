@@ -1,6 +1,6 @@
 import json
 
-from modules.image_processing.ocr.bounding import BoundingBox
+from modules.recognition.ocr.bounding import BoundingBox
 
 
 class TextField:

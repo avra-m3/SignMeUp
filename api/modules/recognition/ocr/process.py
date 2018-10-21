@@ -1,8 +1,8 @@
 import re
 from typing import List, Tuple
 
-from modules.image_processing.ocr.fields import TextField
-from modules.processor.processor_exceptions import ConflictError, FieldError
+from modules.recognition.ocr.fields import TextField
+from modules.observer.processor_exceptions import ConflictError, FieldError
 
 
 def get_card_data(user_id: str, data: dict) -> dict:
@@ -17,7 +17,7 @@ def get_card_data(user_id: str, data: dict) -> dict:
     first_name = " ".join([str(f) for f in fname_fields])
     last_name = " ".join([str(l).lower().capitalize() for l in lname_fields])
 
-    return {"user_id": user_id, "first": first_name, "last": last_name}
+    return {"user_id": user_id, "first_name": first_name, "last_name": last_name}
 
 
 def get_user_id(user_id: str, data: dict) -> TextField:
@@ -72,7 +72,6 @@ def order_names(fields: List[TextField], above_field: TextField):
                 head = field
                 flag = True
                 break
-        print(head)
         if flag:
             ordered.append(head)
             unsorted.remove(head)

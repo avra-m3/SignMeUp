@@ -1,8 +1,8 @@
 import json
 from typing import List
 
-from modules.image_processing.ocr.vertex import Vertex
-from modules.processor.processor_exceptions import FieldError, BoundError
+from modules.recognition.ocr.vertex import Vertex
+from modules.observer.processor_exceptions import BoundError
 
 
 class BoundingBox:

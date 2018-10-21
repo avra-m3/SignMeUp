@@ -1,7 +1,7 @@
 import sys
 from threading import Thread
 
-from modules.processor.observer import watch
+from modules.observer.observer import watch
 
 count = 0
 observer = Thread(target=watch)
