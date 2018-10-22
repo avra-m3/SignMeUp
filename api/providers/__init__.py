@@ -4,10 +4,10 @@ from os.path import dirname
 import flask
 from Tools.scripts.make_ctype import method
 
-from utilities.GenericProvider import GenericProvider
+from providers.generics.GenericProvider import GenericProvider
 
 # Global variables within module scope
-provider = None
+provider: GenericProvider = None
 
 
 def ignore(prop=None):
@@ -30,7 +30,7 @@ def call(prop: method):
 
 def set_provider(prop):
     global provider
-    provider = prop
+    provider = prop()
 
 
 def equals(value):

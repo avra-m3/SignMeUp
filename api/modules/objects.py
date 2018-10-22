@@ -6,6 +6,7 @@ from flask_api import status
 
 from modules.path_constants import PATHS
 from modules.recognition import barcodes
+from providers import provider
 from utilities.exception_router import NotAcceptable, Conflict
 from utilities.temp import TempFile
 
@@ -27,12 +28,12 @@ def register(club_name):
         new_fpath = os.path.join(PATHS.QUEUED, "{}_{}.{}".format(club_name, upload_id, temp.ext))
         if os.path.exists(new_fpath):
             raise Conflict("A student card with that ID has already been submitted for processing")
-        registration = Provider().club(club_name).register(upload_id)
+        registration = provider.club(club_name).register(upload_id)
         shutil.copy(temp.path, new_fpath)
 
     return jsonify(registration.json)
 
 
 def get_file_status(club_name, card_id):
-    provider = Provider()
-    return jsonify(provider.club(club_name).get_registration(card_id).json)
+    club = provider.club(club_name)
+    return jsonify(club.registration(card_id).json)

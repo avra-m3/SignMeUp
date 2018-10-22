@@ -1,10 +1,6 @@
-import os
-
-import pymysql as pymysql
-from werkzeug.contrib.cache import SimpleCache
-
 from providers.rdbms_provider.club import Club
-from utilities.GenericProvider import GenericProvider, GenericClub
+from providers.generics.GenericProvider import GenericProvider
+from providers.generics.GenericClub import GenericClub
 
 
 class DBProvider(GenericProvider):

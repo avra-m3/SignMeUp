@@ -4,22 +4,19 @@ from peewee import ForeignKeyField, CharField, CompositeKey
 from providers.rdbms_provider.Model import BaseModel
 from providers.rdbms_provider.cards import Card
 from providers.rdbms_provider.club import Club
-from utilities.GenericProvider import GenericRegistration
+from providers.generics.GenericRegistration import GenericRegistration
 
 
 class Registration(GenericRegistration, BaseModel):
-    connection: pymysql.Connection
-
     card_id = ForeignKeyField(Card, backref='card_id')
     club_id = ForeignKeyField(Club, backref='club_id')
-    status = CharField(default=None)
-    message = CharField(default=None)
+    status = CharField(default="created")
+    message = CharField(default="The resource was successfully created")
 
     class Meta:
         primary_key = CompositeKey('card_id', 'club_id')
 
     def __init__(self, club_id, card_id):
-        GenericRegistration.__init__(self, club_id, card_id)
         BaseModel.__init__(self, card_id=card_id, club_id=club_id)
 
     def update(self):

@@ -3,7 +3,7 @@ import time
 from threading import Thread
 
 from modules.path_constants import PATHS
-from modules.observer.tools import process
+from modules.observer.controller import process
 
 
 def watch():

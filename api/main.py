@@ -4,10 +4,10 @@ from threading import Thread
 from flask import Flask
 from flask_cors import CORS
 
+import providers
 from modules.objects import index, register, get_file_status
 from modules.observer.observer import watch
 from modules.path_constants import PATHS
-from providers.rdbms_provider.Model import BaseModel
 from utilities.router import create_routes, Route
 
 app = Flask(__name__)
@@ -38,13 +38,12 @@ def before_first_request():
     Actions to perform before the first request
     :return:
     """
-    # connect to the database if one is required
-    BaseModel.setup(app)
+    # Setup the provider before anything else.
+    providers.setup(app)
     # Check processing directories exist
     PATHS.create_dirs()
     # Start the observer
     Thread(target=watch).start()
-
 
 
 create_routes(app, urls)

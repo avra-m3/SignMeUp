@@ -2,7 +2,7 @@ import json
 import os
 
 from modules.path_constants import PATHS
-from utilities.GenericProvider import GenericRegistration
+from providers.generics.GenericRegistration import GenericRegistration
 
 
 class FileRegistration(GenericRegistration):
