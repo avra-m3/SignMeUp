@@ -28,7 +28,8 @@ def register(club_name):
         new_fpath = os.path.join(PATHS.QUEUED, "{}_{}.{}".format(club_name, upload_id, temp.ext))
         if os.path.exists(new_fpath):
             raise Conflict("A student card with that ID has already been submitted for processing")
-        registration = provider.club(club_name).register(upload_id)
+        club = provider.club(club_name)
+        registration = provider.register(club, upload_id)
         shutil.copy(temp.path, new_fpath)
 
     return jsonify(registration.json)
@@ -36,4 +37,4 @@ def register(club_name):
 
 def get_file_status(club_name, card_id):
     club = provider.club(club_name)
-    return jsonify(club.registration(card_id).json)
+    return jsonify(provider.registration(club, card_id).json)

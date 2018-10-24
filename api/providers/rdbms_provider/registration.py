@@ -1,15 +1,14 @@
-import pymysql
 from peewee import ForeignKeyField, CharField, CompositeKey
 
-from providers.rdbms_provider.Model import BaseModel
-from providers.rdbms_provider.cards import Card
-from providers.rdbms_provider.club import Club
 from providers.generics.GenericRegistration import GenericRegistration
+from providers.rdbms_provider.base import BaseModel
+from providers.rdbms_provider.card import Card
+from providers.rdbms_provider.club import Club
 
 
 class Registration(GenericRegistration, BaseModel):
     card_id = ForeignKeyField(Card, backref='card_id')
-    club_id = ForeignKeyField(Club, backref='club_id')
+    club_id = ForeignKeyField(Club, backref='name')
     status = CharField(default="created")
     message = CharField(default="The resource was successfully created")
 

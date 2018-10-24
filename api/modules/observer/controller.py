@@ -152,7 +152,7 @@ def write_output(file_id, **kwargs):
     """
     club_id, card_id = re.match("(\w+)_(21259\d{7}\d{2})", file_id).groups()
     club = provider.club(club_id)
-    registration = club.registration(card_id)
+    registration = provider.registration(club, card_id)
     for key in kwargs:
         if hasattr(registration, key):
             setattr(registration, key, kwargs[key])
