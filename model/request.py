@@ -12,6 +12,7 @@ class Request(BaseModel):
 
     workflow_state = CharField(8, default="created")
     errors = CharField(256, default=None, null=True)
+
     image_location = CharField(256)
 
     @property

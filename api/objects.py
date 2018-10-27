@@ -56,10 +56,9 @@ def register(club_name):
     return jsonify(model_to_dict(request))
 
 
-def get_file_status(club_name, request_id):
+def get_file_status(request_id):
     """
     GET the status of a request
-    :param club_name: The club the request was made to
     :param request_id: The ID of the request.
     :return: A JSON/FLASK response containing the Request Object
     :raises NotFound: When no request matching the ID given exists.
@@ -67,9 +66,6 @@ def get_file_status(club_name, request_id):
     """
     try:
         request = RequestModel.get_by_id(request_id)
-
-        if request.club != club_name:
-            raise Conflict("The club given did not match the registration id")
 
         return jsonify(model_to_dict(request))
     except DoesNotExist:
