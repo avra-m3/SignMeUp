@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from typing import List, Tuple
 
 from modules.ocr.fields import TextField
@@ -9,6 +10,8 @@ def get_card_data(user_id: str, data: dict) -> dict:
     text_data = data["responses"][0]["textAnnotations"][1:]
     print("Analysing Data for s{}".format(user_id))
     user_id_field = get_user_id(user_id, text_data)
+    expiry_field = get_date(text_data)
+
     fname_fields, lname_fields = get_name_fields(text_data)
     fname_fields = order_names(fname_fields, user_id_field)
     lname_fields = order_names(lname_fields, user_id_field)
@@ -16,8 +19,9 @@ def get_card_data(user_id: str, data: dict) -> dict:
     user_id = str(user_id_field)
     first_name = " ".join([str(f) for f in fname_fields])
     last_name = " ".join([str(l).lower().capitalize() for l in lname_fields])
+    expiry = datetime.strptime(str(expiry_field), "%d/%m/%Y")
 
-    return {"user_id": user_id, "first_name": first_name, "last_name": last_name}
+    return {"user_id": user_id, "first_name": first_name, "last_name": last_name, "expiry": expiry}
 
 
 def get_user_id(user_id: str, data: dict) -> TextField:
@@ -76,3 +80,16 @@ def order_names(fields: List[TextField], above_field: TextField):
             ordered.append(head)
             unsorted.remove(head)
     return ordered
+
+
+def get_date(data: dict) -> TextField:
+    """
+    Gets the first field matching the expiry date format.
+    :param data: The input data
+    :return: TextField expiry date
+    """
+    matcher = re.compile("\d{2}/\d{2}/\d{4}")
+    for row in data:
+        field = TextField(row, "Expiry Date", matcher=matcher)
+        if field.is_valid_field():
+            return field

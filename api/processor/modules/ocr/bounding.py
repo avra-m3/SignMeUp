@@ -2,13 +2,13 @@ import json
 from typing import List
 
 from modules.ocr.vertex import Vertex
-from modules.observer.processor_exceptions import BoundError
+from utilities.exception_router import APIException
 
 
 class BoundingBox:
     def __init__(self, data: json):
         if len(data) != 4:
-            raise BoundError(data)
+            raise APIException(data)
         self._points = [Vertex(**v) for v in data]
 
     @property

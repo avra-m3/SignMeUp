@@ -1,31 +1,14 @@
 import json
 import os
-import time
-from threading import Thread
 
 import requests
-from peewee import IntegrityError
+from peewee import IntegrityError, DoesNotExist
 
 from model.club import Club
 from model.registration import Registration
-from model.request import Request
 from model.student import Student
-from modules import ocr
+from modules.ocr.process import get_card_data
 from utilities.exception_router import APIException, Conflict
-
-
-def loop():
-    """
-    Entry point - Handles the processing loop
-    :return:
-    """
-    while True:
-        for model in Request.select().where(Request.workflow_state == "created"):
-            model.workflow_state = "processing"
-            model.save()
-            thread = Thread(target=process, args=[model])
-            thread.start()
-        time.sleep(15)
 
 
 def handle_processing_errors(fn):
@@ -37,37 +20,34 @@ def handle_processing_errors(fn):
     :raises None: This function suppresses ALL exceptions
     """
 
-    def wrapper(model: Request, *args, **kwargs):
+    def wrapper(*args, **kwargs):
         try:
-            return fn(model, *args, **kwargs)
+            return fn(*args, **kwargs)
+        except APIException as ex:
+            print("Exception occurred while processing - {}".format(repr(ex)))
+            raise
         except Exception as ex:
-            print("Unexpected Exception occurred while processing")
-            model.status = "failed"
-            model.errors = "['{}']".join("', '".join(ex.args))
-            # raise
+            print("Unexpected Exception occurred while processing - {}".format(repr(ex)))
+            raise APIException()
 
     return wrapper
 
 
 @handle_processing_errors
-def process(model: Request):
-    data = request_ocr(model.image_location)
-
-    card_data = ocr.get_card_data(model.user_id, data)
-
-    student = Student.get_or_create(id=model.user_id,
-                                    first_name=card_data["first_name"],
-                                    last_name=card_data["last_name"],
-                                    expiry=None)
-    club = Club.get_or_create(id=model.club_name)
-
+def process(image_location: str, user_id, club_name):
     try:
-        registration = Registration()
-        registration.user_id = student.id
-        registration.club_id = club.id
-        registration.save()
-    except IntegrityError:
-        raise Conflict("A registration matching this information already exists")
+        student = Student.get_by_id(user_id)
+        club, _ = Club.get_or_create(club_id=str(club_name))
+    except DoesNotExist:
+        data = request_ocr(image_location)
+        card_data = get_card_data(user_id, data)
+
+        print(card_data)
+
+        student, _ = Student.get_or_create(**card_data)
+        club, _ = Club.get_or_create(club_id=str(club_name))
+
+    return Registration.create(student=student.user_id, club=club.club_id, proof=image_location)
 
 
 def request_ocr(url: str) -> dict:
@@ -77,6 +57,7 @@ def request_ocr(url: str) -> dict:
     The values should be an api key with access to google's text detection api
     :return: A requests Response object
     """
+
     # Set Constants
     ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate'
     AUTH = os.getenv('OCR_AUTH_KEY')
@@ -115,4 +96,7 @@ def request_ocr(url: str) -> dict:
     if response.status_code != 200:
         raise APIException("Upstream gateway returned an unacceptable response", status=502)
 
-    return response.json()
+    data = response.json()
+    print(data)
+
+    return data
