@@ -1,7 +1,10 @@
+google
 flask
 flask-cors
+flask-api
 opencv-python
 imutils==0.4.6
 pyzbar
-pyzbar[scripts]
-
+requests
+pymysql
+peewee
