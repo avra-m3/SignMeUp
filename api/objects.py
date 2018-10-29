@@ -1,6 +1,6 @@
+import re
 import tempfile
 import uuid
-from datetime import datetime
 
 from flask import Response, jsonify
 from flask import request as inbound
@@ -9,11 +9,10 @@ from google.cloud import storage
 from peewee import DoesNotExist
 from playhouse.shortcuts import model_to_dict
 
-from model import base
+from core import process
 from model.registration import Registration
-from model.request import Request as RequestModel
 from utilities import barcodes
-from utilities.exception_router import NotAcceptable, Conflict, NotFound
+from utilities.exception_router import NotAcceptable, NotFound
 
 
 def index():
@@ -43,47 +42,38 @@ def register(club_name):
 
     # Make a temporary file and write the upload to it.
     temp = tempfile.NamedTemporaryFile()
-    temp.write(upload.read())
     temp.close()
+
+    upload.save(temp.name)
 
     # Pass the file path to the barcode processor for processing.
     card_number = barcodes.process(temp.name)
+    match = re.match("^21259(\d{7})\d{2}$", card_number)
+    if match is None:
+        raise NotAcceptable("Could not detect a valid barcode in the image provided")
 
-    # Upload the file and create entries into the database
-    request = create(card_number, club_name, temp.name)
+    user_id = match.groups()[0]
+    try:
+        reg = Registration.get(club=club_name, student=user_id)
+    except DoesNotExist:
+        # Upload the file
+        image_location = create(card_number, club_name, temp.name)
+        reg = process(image_location, user_id, club_name)
 
     # Return a copy of the new request object in the database.
-    return jsonify(model_to_dict(request))
+    return jsonify(model_to_dict(reg))
 
 
-def get_file_status(request_id):
-    """
-    GET the status of a request
-    :param request_id: The ID of the request.
-    :return: A JSON/FLASK response containing the Request Object
-    :raises NotFound: When no request matching the ID given exists.
-    :raises Conflict: When the request exists but is not linked to the club_name given.
-    """
-    try:
-        request = RequestModel.get_by_id(request_id)
-
-        return jsonify(model_to_dict(request))
-    except DoesNotExist:
-        raise NotFound("That request does not exist.")
-
-
-def get_registration(club_name, user_id, year=datetime.now().year):
+def get_registration(registration_id):
     """
     GET the details of an existing registration
-    :param club_name: The name of the club to check
-    :param year: The year to check
-    :param user_id: The user id to get details for.
+    :param registration_id:
     :return: A JSON/Flask response containing the Registration object.
     :raises NotFound: if a registration matching the above does not exist
     """
     try:
         # TODO: Reconsider what we should be returning.
-        reg = Registration.get(club_id=club_name, card_id=user_id, year=year)
+        reg = Registration.get_by_id(registration_id)
         return jsonify(model_to_dict(reg, recurse=True))
 
     except DoesNotExist:
@@ -114,16 +104,4 @@ def create(card_number, club_name, path):
     :return: Reference to the Request model for the newly created request.
     :raises Upstream errors from the google.storage library
     """
-    with base.database.atomic() as tx:
-        try:
-            request = RequestModel.create(card_number=card_number, club_name=club_name, url="")
-
-            destination = store(path, "request_{}_{}.png".format(request.id, uuid.uuid4()))
-
-            request.image_location = destination
-            request.save()
-            return request
-        except Exception:
-            # Rollback the create if the image could not be uploaded into storage
-            tx.rollback()
-            raise
+    return store(path, "request_{}_{}_{}.png".format(card_number, club_name, uuid.uuid4()))
