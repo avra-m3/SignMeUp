@@ -104,7 +104,8 @@ class BaseModel(Model):
         database = DynDatabase()
         # Set the database type.
         database.type = cfg["DATABASE"] or SQLITE
-        database.config = cfg["DATABASE_CONFIG"]
+        if "DATABASE_CONFIG" in cfg:
+            database.config = cfg["DATABASE_CONFIG"]
 
         def disconnect(r):
             database.disconnect()
