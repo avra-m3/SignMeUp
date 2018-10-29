@@ -3,7 +3,7 @@ import re
 import cv2
 import pyzbar.pyzbar as pyzbar
 
-from utilities.exception_router import PreconditionFailed
+from utilities.exception_router import PreconditionFailed, NotAcceptable
 
 valid_bacode_format = re.compile("^\d{14}$")
 
@@ -20,5 +20,5 @@ def process(path: str) -> str:
     # Read image
     im = cv2.imread(path)
     if im is None:
-        raise PreconditionFailed("Uploaded file was in an invalid format.")
+        raise NotAcceptable("Uploaded file was in an invalid format.")
     return decode(im)

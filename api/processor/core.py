@@ -4,7 +4,7 @@ import os
 import requests
 from peewee import IntegrityError, DoesNotExist
 
-from model.club import Club
+from model import Club
 from model.registration import Registration
 from model.student import Student
 from modules.ocr.process import get_card_data

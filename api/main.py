@@ -1,11 +1,9 @@
 import json
 import os
-from threading import Thread
-
 from flask import Flask
 from flask_cors import CORS
 
-from model.base import BaseModel, SQLITE
+from model import BaseModel, SQLITE
 from objects import index, register, get_registration
 from utilities.router import create_routes, Route
 

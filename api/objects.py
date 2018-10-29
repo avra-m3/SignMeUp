@@ -12,7 +12,7 @@ from playhouse.shortcuts import model_to_dict
 from core import process
 from model.registration import Registration
 from utilities import barcodes
-from utilities.exception_router import NotAcceptable, NotFound
+from utilities.exception_router import NotAcceptable, NotFound, PreconditionFailed
 
 
 def index():
@@ -50,7 +50,7 @@ def register(club_name):
     card_number = barcodes.process(temp.name)
     match = re.match("^21259(\d{7})\d{2}$", card_number)
     if match is None:
-        raise NotAcceptable("Could not detect a valid barcode in the image provided")
+        raise PreconditionFailed("Could not detect a valid barcode in the image provided")
 
     user_id = match.groups()[0]
     try:
