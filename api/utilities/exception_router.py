@@ -37,23 +37,22 @@ class APIException(Exception):
         except ValueError:
             return "HTTP {}".format(self.status)
 
-    @staticmethod
-    def handler(exc) -> Response:
+    def handler(self) -> Response:
         """
         Handle an APIException and transform it into response
-        :param exc: The Api Exception object
+        :param self: The Api Exception object
         :return: A JSON werkzuig response object
         """
         result = {
-            "code": exc.status,
-            "status": exc.status_message,
-            "message": exc.detail,
+            "code": self.status,
+            "status": self.status_message,
+            "message": self.detail,
         }
-        if exc.payload is not None:
-            result["data"] = exc.payload
+        if self.payload is not None:
+            result["data"] = self.payload
         print(result)
         response = jsonify(result)
-        response.status_code = exc.status
+        response.status_code = self.status
         return response
 
 
@@ -73,10 +72,11 @@ class PreconditionFailed(APIException):
     For more information see: https://github.com/pallets/werkzeug/issues/1231
 
     Solution:
-    Upgrade to v0.15 where https://github.com/pallets/werkzeug/pull/1255 will hopefully be in effect.
+    Upgrade to v0.15 on release where https://github.com/pallets/werkzeug/pull/1255 will hopefully be in effect.
     """
     _status = 412
     _detail = "Precondition Failed"
+
 
 
 class Conflict(APIException):

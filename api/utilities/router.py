@@ -113,6 +113,6 @@ def create_routes(app: Flask, urls: List[Route]) -> None:
     :param urls: A list of lists
     :return: None
     """
-    app.errorhandler(APIException)(APIException.handler)
+    app.errorhandler(APIException)(lambda ex: ex.handler())
     for route in urls:
         app.route(route.url, methods=route.methods)(route.call)
