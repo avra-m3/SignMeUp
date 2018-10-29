@@ -10,7 +10,7 @@ COPY web/public /usr/src/app/public
 COPY web/src /usr/src/app/src
 RUN npm run build
 
-FROM tiangolo/uwsgi-nginx-flask:python3.6
+FROM tiangolo/uwsgi-nginx-flask:python3.7
 EXPOSE 9090
 
 RUN apt-get update && apt-get install libzbar-dev libzbar0 -y
