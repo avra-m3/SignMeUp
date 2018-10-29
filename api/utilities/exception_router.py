@@ -77,6 +77,16 @@ class PreconditionFailed(APIException):
     _status = 412
     _detail = "Precondition Failed"
 
+    def handler(self) -> Response:
+        """
+        <b>HACK</b>
+        Override the default behaviour and have a 412 be sent with 400 (next closest status code) so the message is
+        sent to the end user.
+        :return:
+        """
+        result = APIException.handler(self)
+        result.status_code = 400
+        return result
 
 
 class Conflict(APIException):
