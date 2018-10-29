@@ -8,10 +8,7 @@ from model.club import Club
 
 
 class Registration(BaseModel):
-    user_id = ForeignKeyField(Student, backref="id")
-    club_id = ForeignKeyField(Club, backref="id")
+    student = ForeignKeyField(Student, backref="id")
+    club = ForeignKeyField(Club, backref="id")
     year = CharField(4, default=datetime.now().year)
     proof = CharField(256, null=False)
-
-    class Meta:
-        primary_key = CompositeKey('user_id', 'club_id', 'year')
