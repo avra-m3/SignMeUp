@@ -20,8 +20,9 @@ def get_card_data(user_id: str, data: dict) -> dict:
     first_name = " ".join([str(f) for f in fname_fields])
     last_name = " ".join([str(l).lower().capitalize() for l in lname_fields])
     expiry = datetime.strptime(str(expiry_field), "%d/%m/%Y")
+    email = "s{}@student.rmit.edu.au".format(user_id)
 
-    return {"user_id": user_id, "first_name": first_name, "last_name": last_name, "expiry": expiry}
+    return {"user_id": user_id, "first_name": first_name, "last_name": last_name, "expiry": expiry, "email": email}
 
 
 def get_user_id(user_id: str, data: dict) -> TextField:
