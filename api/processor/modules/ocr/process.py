@@ -6,8 +6,7 @@ from modules.ocr.fields import TextField
 from utilities.exception_router import Conflict, APIException
 
 
-def get_card_data(user_id: str, data: dict) -> dict:
-    text_data = data["responses"][0]["textAnnotations"][1:]
+def get_card_data(user_id: str, text_data: List[dict]) -> dict:
     print("Analysing Data for s{}".format(user_id))
     user_id_field = get_user_id(user_id, text_data)
     expiry_field = get_date(text_data)
@@ -25,7 +24,7 @@ def get_card_data(user_id: str, data: dict) -> dict:
     return {"user_id": user_id, "first_name": first_name, "last_name": last_name, "expiry": expiry, "email": email}
 
 
-def get_user_id(user_id: str, data: dict) -> TextField:
+def get_user_id(user_id: str, data: List[dict]) -> TextField:
     result = None
     matcher = re.compile("^{}$".format(user_id))
     for field in data:
@@ -39,7 +38,7 @@ def get_user_id(user_id: str, data: dict) -> TextField:
     return result
 
 
-def get_name_fields(data: dict) -> Tuple[List[TextField], List[TextField]]:
+def get_name_fields(data: List[dict]) -> Tuple[List[TextField], List[TextField]]:
     first = []
     last = []
     fname_matcher = re.compile('^((?!Expiry)[A-Z][a-z\-]+)$')
@@ -83,7 +82,7 @@ def order_names(fields: List[TextField], above_field: TextField):
     return ordered
 
 
-def get_date(data: dict) -> TextField:
+def get_date(data: List[dict]) -> TextField:
     """
     Gets the first field matching the expiry date format.
     :param data: The input data
