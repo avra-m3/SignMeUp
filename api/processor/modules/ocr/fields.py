@@ -5,10 +5,11 @@ from modules.ocr.bounding import BoundingBox
 
 class TextField:
     FLEX = 27
+    poly_kwd = "boundingPoly"
 
     def __init__(self, data: json, type: str, matcher=None):
         self.raw = data
-        self.bounds = BoundingBox(self.raw["boundingPoly"]["vertices"])
+        self.bounds = BoundingBox(self.raw["bounding_poly"]["vertices"])
         self.type = type
         self.matcher = matcher
 

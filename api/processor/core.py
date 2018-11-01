@@ -1,14 +1,11 @@
-import json
-import os
-
-import requests
-from peewee import IntegrityError, DoesNotExist
+from peewee import DoesNotExist
 
 from model.club import Club
 from model.registration import Registration
 from model.student import Student
 from modules.ocr.process import get_card_data
-from utilities.exception_router import APIException, Conflict
+from modules.ocr.request import request_ocr
+from utilities.exception_router import APIException
 
 
 def handle_processing_errors(fn):
@@ -50,53 +47,3 @@ def process(image_location: str, user_id, club_name):
     return Registration.create(student=student.user_id, club=club.club_id, proof=image_location)
 
 
-def request_ocr(url: str) -> dict:
-    """
-    Requests OCR data from google cloud.
-    This function requires an environment variable with the key 'OCR_AUTH_KEY';
-    The values should be an api key with access to google's text detection api
-    :return: A requests Response object
-    """
-
-    # Set Constants
-    ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate'
-    AUTH = os.getenv('OCR_AUTH_KEY')
-    HEADERS = {'Content-Type': 'application/json'}
-
-    # Set the request structure.
-    data = {
-        'requests': [{
-            # The image
-            'image': {
-                'source': {
-                    'imageUri': url,
-                },
-            },
-            # What we want in our response
-            "features": [
-                {
-                    "type": "TEXT_DETECTION"
-                }
-            ],
-            # Make processing more accurate by specifying english as the language
-            "imageContext": {
-                "languageHints": [
-                    "en"
-                ]
-            }
-        }]
-    }
-    # Make POST request and return the response.
-    response = requests.post(ENDPOINT,
-                             data=json.dumps(data),
-                             params={'key': AUTH},
-                             headers=HEADERS
-                             )
-
-    if response.status_code != 200:
-        raise APIException("Upstream gateway returned an unacceptable response", status=502)
-
-    data = response.json()
-    print(data)
-
-    return data
