@@ -1,21 +1,22 @@
 import json
 import os
 import re
-from typing import List
+from typing import List, Union
 
 import requests
 from google.cloud import vision
-from google.cloud.vision_v1.proto.image_annotator_pb2 import AnnotateImageResponse
+from google.cloud.vision_v1.proto.image_annotator_pb2 import EntityAnnotation
+from google.cloud.vision_v1.types
 
 from utilities.exception_router import APIException
 
 
-def request_ocr(url: str) -> List[dict]:
+def legacy_request_ocr(url: str) -> List[dict]:
     """
     Requests OCR data from google cloud.
     This function requires an environment variable with the key 'OCR_AUTH_KEY';
     The values should be an api key with access to google's text detection api
-    :return: A requests Response object
+    :return: An object like a List of dictionary.
     """
 
     # Set Constants
@@ -57,21 +58,13 @@ def request_ocr(url: str) -> List[dict]:
         raise APIException("Upstream gateway returned an unacceptable response", status=502)
 
     data = response.json()
-    print(data)
-    output = data["responses"][0]["textAnnotations"][1:]
+    return LegacyOCRRequestAdapter(data["responses"][0]["textAnnotations"][1:])
 
 
-def to_snake_case(output: List[dict]) -> List[dict]:
-    as_str = json.dumps(output)
-    s1 = re.sub("(.)([A-Z][a-z]+)", r'\1_\2', as_str)
-    s2 = re.sub("([a-z0-9])(A-Z)", r'\1_\2', s1).lower()
-    return json.loads(s2)
-
-
-def __future__request_ocr(url: str) -> list:
+def request_ocr(url: str) -> list:
     client = vision.ImageAnnotatorClient()
     try:
-        response: AnnotateImageResponse = client.annotate_image({
+        response = client.annotate_image({
             "image": {
                 "source": {
                     "image_uri": url,
@@ -80,14 +73,93 @@ def __future__request_ocr(url: str) -> list:
             "features": [
                 {"type": vision.enums.Feature.Type.TEXT_DETECTION}
             ],
-            # "imageContext": {
-            #     "languageHints": [
-            #         "en"
-            #     ]
-            # }
         })
         if not response.text_annotations:
             raise RuntimeError()
     except Exception:
         raise APIException("Upstream gateway returned an unacceptable response", status=502)
     return response.text_annotations
+
+
+class GCloudResponseAdapter:
+    class GCloudContainer(list):
+        def __init__(self, container):
+            new = []
+            for item in container:
+                if isinstance(item, EntityAnnotation):
+                    new.append()
+
+    class GCloudAnnotation(dict):
+        def __init__(self):
+            pass
+
+    def create(self, response: list):
+        return self.GCloudContainer(response)
+
+
+class LegacyOCRRequestAdapter:
+    """
+    This class will allow us to continue using the legacy request response object
+    despite the difference in key names.
+    ie boundingPoly -> bounding_poly
+    """
+    _obj: Union[list, dict]
+
+    _rx = r"(.*?)_([a-zA-Z])"
+
+    def __init__(self, response: Union[list, dict]):
+        temp = None
+        print(type(response))
+        if isinstance(response, list):
+            temp = []
+            for item in response:
+                if isinstance(item, dict) or isinstance(item, list):
+                    temp.append(LegacyOCRRequestAdapter(item))
+                else:
+                    temp.append(item)
+        elif isinstance(response, dict):
+            temp = {}
+            for key in response:
+                item = response[key]
+                if isinstance(item, dict) or isinstance(item, list):
+                    temp[key] = LegacyOCRRequestAdapter(item)
+                else:
+                    temp[key] = item
+        print(temp)
+        self._obj = temp
+
+    def _camel_case(self, match):
+        """
+        Given a match, return the camelCase version of the string
+        :param match:
+        :return:
+        """
+        return match.group(1) + match.group(2).upper()
+
+    def __getitem__(self, item):
+        """
+        Override getitem to lookup the snake case string as camel case when it doesn't exist
+        :param item: The key or index to lookup
+        :return: Any
+        """
+        if isinstance(self._obj, list):
+            return self._obj[item]
+        elif isinstance(self._obj, dict):
+            if item in self._obj:
+                return self._obj[item]
+            else:
+                item = re.sub(self._rx, self._camel_case, item, 0)
+                return self._obj[item]
+
+    def __iter__(self):
+        return iter(self._obj)
+
+    def __len__(self):
+        return len(self._obj)
+
+    def keys(self):
+        if isinstance(self._obj, dict):
+            return self._obj.keys()
+
+    def items(self):
+        return self._obj.items()
