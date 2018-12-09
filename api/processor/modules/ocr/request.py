@@ -6,7 +6,6 @@ from typing import List
 import requests
 from google.cloud import vision
 
-from modules.ocr.Generics.responsefield import ResponseField, Bounds, Vertex
 from utilities.exception_router import APIException
 
 
@@ -80,7 +79,7 @@ def request_ocr(url: str) -> list:
             raise RuntimeError()
     except Exception:
         raise APIException("Upstream gateway returned an unacceptable response", status=502)
-    return response.text_annotations
+    return response_as_dict(response.text_annotations)
 
 
 def response_as_dict(annotations) -> List[dict]:
@@ -93,21 +92,7 @@ def response_as_dict(annotations) -> List[dict]:
     for entity in annotations:
         temp = {
             "description": entity.description,
-            "boundingPoly": [{'x': coord.x, 'y': coord.y} for coord in entity.bounding_poly.vertices],
+            "bounding_poly": {'vertices': [{'x': coord.x, 'y': coord.y} for coord in entity.bounding_poly.vertices]},
         }
         result.append(temp)
     return result
-
-
-class GCloudResponse(ResponseField):
-    def __init__(self, entity):
-        self._text = entity.description
-        bounds = Bounds()
-        temp = []
-        for coord in entity.bounding_poly.vertices:
-            temp_v = Vertex()
-            temp_v.x = coord.x
-            temp_v.y = coord.y
-            temp.append(temp_v)
-        bounds.values = temp
-        self._bounds = bounds

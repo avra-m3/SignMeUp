@@ -1,3 +1,5 @@
+import traceback
+
 from peewee import DoesNotExist
 
 from model.club import Club
@@ -22,9 +24,11 @@ def handle_processing_errors(fn):
             return fn(*args, **kwargs)
         except APIException as ex:
             print("Exception occurred while processing - {}".format(repr(ex)))
+            traceback.print_exc()
             raise
         except Exception as ex:
             print("Unexpected Exception occurred while processing - {}".format(repr(ex)))
+            traceback.print_exc()
             raise APIException()
 
     return wrapper
