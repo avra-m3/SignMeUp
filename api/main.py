@@ -1,5 +1,6 @@
 import json
 import os
+
 from flask import Flask
 from flask_cors import CORS
 
@@ -7,18 +8,19 @@ from model.base import BaseModel, SQLITE
 from objects import index, register, get_registration
 from utilities.router import create_routes, Route
 
-
 app = Flask(__name__)
 CORS(app)
-
 
 """
 Guide to environment variables
 =====================================
-Variable        | Required  | Description
+Variable            | Required  | Description
 -------------------------------------
-DATABASE        | No        | The type of database to use (sqlite | mysql | postgre).
-DATABSE_CONFIG  | Sometimes | Required when DATABASE = 'mysql'
+DATABASE            | No        | The type of database to use (sqlite | mysql | postgre).
+DATABASE_CONFIG     | Sometimes | Required when DATABASE = 'mysql' or 'postgre'
+MAX_CONTENT_LENGTH  | No        | Sets the maximum request size that can be sent, defaults to 16 mb
+GCLOUD_BUCKET       | No        | Sets the name of the google cloud bucket to place files in
+
 """
 
 # Configure App from environment
@@ -38,7 +40,6 @@ BaseModel.setup({
     "DATABASE_CONFIG": app.config["DATABASE_CONFIG"],
     "FLASK_APP": app,
 })
-
 
 create_routes(app, urls)
 
