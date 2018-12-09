@@ -3,4 +3,4 @@ web/node_modules
 processing
 *.db
 # Ignore the cloud key
-*.json
+*.secret

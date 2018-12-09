@@ -7,8 +7,19 @@ from model.base import BaseModel, SQLITE
 from objects import index, register, get_registration
 from utilities.router import create_routes, Route
 
+
 app = Flask(__name__)
 CORS(app)
+
+
+"""
+Guide to environment variables
+=====================================
+Variable        | Required  | Description
+-------------------------------------
+DATABASE        | No        | The type of database to use (sqlite | mysql | postgre).
+DATABSE_CONFIG  | Sometimes | Required when DATABASE = 'mysql'
+"""
 
 # Configure App from environment
 app.config["DATABASE"] = os.getenv("DATABASE") or SQLITE
