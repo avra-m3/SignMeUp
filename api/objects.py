@@ -2,6 +2,7 @@ import re
 import tempfile
 import uuid
 
+from flask import current_app as app
 from flask import Response, jsonify
 from flask import request as inbound
 from flask_api import status
@@ -89,7 +90,7 @@ def store(path: str, name: str):
     """
     client = storage.Client()
     # TODO: Change the bucket id to an app.config variable.
-    bucket = client.get_bucket("csit-cache")
+    bucket = client.get_bucket(app.config["GCLOUD_BUCKET"])
     upload = bucket.blob(name)
     upload.upload_from_filename(path)
     return upload.public_url

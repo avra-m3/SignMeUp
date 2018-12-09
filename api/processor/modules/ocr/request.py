@@ -1,13 +1,11 @@
 import json
 import os
-import re
-from typing import List, Union
+from typing import List
 
 import requests
 from google.cloud import vision
-from google.cloud.vision_v1.proto.image_annotator_pb2 import EntityAnnotation
-from google.cloud.vision_v1.types
 
+from modules.ocr.Generics.responsefield import ResponseField, Bounds, Vertex
 from utilities.exception_router import APIException
 
 
@@ -17,6 +15,7 @@ def legacy_request_ocr(url: str) -> List[dict]:
     This function requires an environment variable with the key 'OCR_AUTH_KEY';
     The values should be an api key with access to google's text detection api
     :return: An object like a List of dictionary.
+    :deprecated: in favour of request_ocr
     """
 
     # Set Constants
@@ -58,7 +57,7 @@ def legacy_request_ocr(url: str) -> List[dict]:
         raise APIException("Upstream gateway returned an unacceptable response", status=502)
 
     data = response.json()
-    return LegacyOCRRequestAdapter(data["responses"][0]["textAnnotations"][1:])
+    return data["responses"][0]["textAnnotations"][1:]
 
 
 def request_ocr(url: str) -> list:
@@ -81,85 +80,31 @@ def request_ocr(url: str) -> list:
     return response.text_annotations
 
 
-class GCloudResponseAdapter:
-    class GCloudContainer(list):
-        def __init__(self, container):
-            new = []
-            for item in container:
-                if isinstance(item, EntityAnnotation):
-                    new.append()
-
-    class GCloudAnnotation(dict):
-        def __init__(self):
-            pass
-
-    def create(self, response: list):
-        return self.GCloudContainer(response)
-
-
-class LegacyOCRRequestAdapter:
+def response_as_dict(annotations) -> List[dict]:
     """
-    This class will allow us to continue using the legacy request response object
-    despite the difference in key names.
-    ie boundingPoly -> bounding_poly
+    Adapt the google cloud response to a dictionary.
+    :param annotations:
+    :return:
     """
-    _obj: Union[list, dict]
+    result = []
+    for entity in annotations:
+        temp = {
+            "description": entity.description,
+            "boundingPoly": [{'x': coord.x, 'y': coord.y} for coord in entity.bounding_poly.vertices],
+        }
+        result.append(temp)
+    return result
 
-    _rx = r"(.*?)_([a-zA-Z])"
 
-    def __init__(self, response: Union[list, dict]):
-        temp = None
-        print(type(response))
-        if isinstance(response, list):
-            temp = []
-            for item in response:
-                if isinstance(item, dict) or isinstance(item, list):
-                    temp.append(LegacyOCRRequestAdapter(item))
-                else:
-                    temp.append(item)
-        elif isinstance(response, dict):
-            temp = {}
-            for key in response:
-                item = response[key]
-                if isinstance(item, dict) or isinstance(item, list):
-                    temp[key] = LegacyOCRRequestAdapter(item)
-                else:
-                    temp[key] = item
-        print(temp)
-        self._obj = temp
-
-    def _camel_case(self, match):
-        """
-        Given a match, return the camelCase version of the string
-        :param match:
-        :return:
-        """
-        return match.group(1) + match.group(2).upper()
-
-    def __getitem__(self, item):
-        """
-        Override getitem to lookup the snake case string as camel case when it doesn't exist
-        :param item: The key or index to lookup
-        :return: Any
-        """
-        if isinstance(self._obj, list):
-            return self._obj[item]
-        elif isinstance(self._obj, dict):
-            if item in self._obj:
-                return self._obj[item]
-            else:
-                item = re.sub(self._rx, self._camel_case, item, 0)
-                return self._obj[item]
-
-    def __iter__(self):
-        return iter(self._obj)
-
-    def __len__(self):
-        return len(self._obj)
-
-    def keys(self):
-        if isinstance(self._obj, dict):
-            return self._obj.keys()
-
-    def items(self):
-        return self._obj.items()
+class GCloudResponse(ResponseField):
+    def __init__(self, entity):
+        self._text = entity.description
+        bounds = Bounds()
+        temp = []
+        for coord in entity.bounding_poly.vertices:
+            temp_v = Vertex()
+            temp_v.x = coord.x
+            temp_v.y = coord.y
+            temp.append(temp_v)
+        bounds.values = temp
+        self._bounds = bounds

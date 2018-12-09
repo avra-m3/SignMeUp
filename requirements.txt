@@ -1,4 +1,6 @@
 google
+google-cloud-vision
+google-cloud-storage
 flask
 flask-cors
 flask-api

@@ -14,6 +14,7 @@ CORS(app)
 app.config["DATABASE"] = os.getenv("DATABASE") or SQLITE
 app.config["DATABASE_CONFIG"] = json.loads(os.getenv("DATABASE_CONFIG") or '{}')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config["GCLOUD_BUCKET"] = os.getenv("GCLOUD_BUCKET") or "csit-cache"
 
 urls = [
     Route('/', ['GET'], index),
