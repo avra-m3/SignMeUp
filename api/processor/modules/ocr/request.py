@@ -1,5 +1,6 @@
 import json
 import os
+import warnings
 from typing import List
 
 import requests
@@ -18,6 +19,8 @@ def legacy_request_ocr(url: str) -> List[dict]:
     :deprecated: in favour of request_ocr
     """
 
+    warnings.warn(
+        "Call to deprecated method 'legacy_request_ocr' this method is no longer supported, use 'request_ocr' instead")
     # Set Constants
     ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate'
     AUTH = os.getenv('OCR_AUTH_KEY')
