@@ -1,115 +1,124 @@
-import os
-from abc import ABC
-from datetime import datetime
+import json
 
-from peewee import Model, SqliteDatabase, MySQLDatabase, DateTimeField, TimestampField, Database
-
-SQLITE = "sqlite"
-MYSQL = "mysql"
-POSTGRE = "postgre"
+from sqlalchemy.orm.attributes import QueryableAttribute
+from model.database import db
 
 
-class DynDatabase(Database, ABC):
+class BaseModel(db.Model):
     """
-    This entire class is a giant hack to get around the retarded way peewee handles database creation/destruction.
-    I Would not recommend attempting to modify this.
+    Borrowed Code from online example
+    Source:
+    https://wakatime.com/blog/32-flask-part-1-sqlalchemy-models-to-json
+
+    TODO: Rewrite to be more compact/ readable
     """
-    # The underlying private STATIC database, may be None do not call.
-    _database: Database = None
+    __abstract__ = True
 
-    def __getattr__(self, item):
-        """
-        If for some reason someone (Cough peewee) attempts to access this class
-        as a database. Then proxy the call to  _database
-        :param item: The item to lookup
-        :return: ?
-        """
-        return self.database.__getattribute__(item)
+    def to_dict(self, show=None, _hide=[], _path=None):
+        """Return a dictionary representation of this model."""
 
-    # Private configuration (Private to avoid peeweee conflicts)
-    type = SQLITE
-    config = {}
+        show = show or []
 
-    keep_alive = True
+        hidden = self._hidden_fields if hasattr(self, "_hidden_fields") else []
+        default = self._default_fields if hasattr(self, "_default_fields") else []
+        default.extend(['id', 'modified_at', 'created_at'])
 
-    def __init__(self):
-        """
-        Because we've inherited from Database we need to override the
-        constructor as we aren't actually a database instance, we just
-        quack like one :)
-        """
-        pass
+        if not _path:
+            _path = self.__tablename__.lower()
 
-    @staticmethod
-    def _create(cls) -> Database:
-        """
-        Create a database based on the type/config
-        :param cls: An instance of DynDatabase
-        :return: An actual database
-        """
-        if cls.type == SQLITE:
-            db_path = os.path.join(os.path.dirname(__file__), "local.db")
-            return SqliteDatabase(db_path)
-        elif cls.type == MYSQL:
-            db = cls.config["name"]
-            host = cls.config["host"]
-            user = cls.config["username"]
-            pwd = cls.config["password"]
-            return MySQLDatabase(db, host=host, username=user, password=pwd)
-        elif cls.type == POSTGRE:
-            raise NotImplementedError("This implementation is left as an exercise to the reader.")
-        raise RuntimeError("Invalid Database Requested.")
+            def prepend_path(item):
+                item = item.lower()
+                if item.split(".", 1)[0] == _path:
+                    return item
+                if len(item) == 0:
+                    return item
+                if item[0] != ".":
+                    item = ".%s" % item
+                item = "%s%s" % (_path, item)
+                return item
 
-    @property
-    def database(self):
-        """
-        Get/Create/Connect the current database.
-        :return:
-        """
-        cls = DynDatabase
-        if cls._database is None:
-            cls._database = self._create(cls)
-        if cls._database.is_closed():
-            cls._database.connect()
-        return cls._database
+            _hide[:] = [prepend_path(x) for x in _hide]
+            show[:] = [prepend_path(x) for x in show]
 
-    def __get__(self, instance, owner) -> Database:
-        return self.database
+        columns = self.__table__.columns.keys()
+        relationships = self.__mapper__.relationships.keys()
+        properties = dir(self)
 
-    @staticmethod
-    def disconnect():
-        """
-        Disconnect the database (This may delete depending on implementation)
-        :return:
-        """
-        cls = DynDatabase
-        if cls._database is not None:
-            cls._database.close()
-            if not cls.keep_alive:
-                cls._database = None
+        ret_data = {}
 
+        for key in columns:
+            if key.startswith("_"):
+                continue
+            check = "%s.%s" % (_path, key)
+            if check in _hide or key in hidden:
+                continue
+            if check in show or key in default:
+                ret_data[key] = getattr(self, key)
 
-class BaseMeta:
-    database = DynDatabase()
+        for key in relationships:
+            if key.startswith("_"):
+                continue
+            check = "%s.%s" % (_path, key)
+            if check in _hide or key in hidden:
+                continue
+            if check in show or key in default:
+                _hide.append(check)
+                is_list = self.__mapper__.relationships[key].uselist
+                if is_list:
+                    items = getattr(self, key)
+                    if self.__mapper__.relationships[key].query_class is not None:
+                        if hasattr(items, "all"):
+                            items = items.all()
+                    ret_data[key] = []
+                    for item in items:
+                        ret_data[key].append(
+                            item.to_dict(
+                                show=list(show),
+                                _hide=list(_hide),
+                                _path=("%s.%s" % (_path, key.lower())),
+                            )
+                        )
+                else:
+                    if (
+                            self.__mapper__.relationships[key].query_class is not None
+                            or self.__mapper__.relationships[key].instrument_class
+                            is not None
+                    ):
+                        item = getattr(self, key)
+                        if item is not None:
+                            ret_data[key] = item.to_dict(
+                                show=list(show),
+                                _hide=list(_hide),
+                                _path=("%s.%s" % (_path, key.lower())),
+                            )
+                        else:
+                            ret_data[key] = None
+                    else:
+                        ret_data[key] = getattr(self, key)
 
+        for key in list(set(properties) - set(columns) - set(relationships)):
+            if key.startswith("_"):
+                continue
+            if not hasattr(self.__class__, key):
+                continue
+            attr = getattr(self.__class__, key)
+            if not (isinstance(attr, property) or isinstance(attr, QueryableAttribute)):
+                continue
+            check = "%s.%s" % (_path, key)
+            if check in _hide or key in hidden:
+                continue
+            if check in show or key in default:
+                val = getattr(self, key)
+                if hasattr(val, "to_dict"):
+                    ret_data[key] = val.to_dict(
+                        show=list(show),
+                        _hide=list(_hide),
+                        _path=('%s.%s' % (_path, key.lower())),
+                    )
+                else:
+                    try:
+                        ret_data[key] = json.loads(json.dumps(val))
+                    except:
+                        pass
 
-class BaseModel(Model):
-    created_at = DateTimeField(default=datetime.now())
-    modified_at = TimestampField()
-
-    Meta = BaseMeta
-
-    @staticmethod
-    def setup(cfg: dict):
-        database = DynDatabase()
-        # Set the database type.
-        database.type = cfg["DATABASE"] or SQLITE
-        if "DATABASE_CONFIG" in cfg:
-            database.config = cfg["DATABASE_CONFIG"]
-
-        def disconnect(r):
-            database.disconnect()
-            return r
-
-        if "FLASK_APP" in cfg:
-            cfg["FLASK_APP"].after_request(disconnect)
+        return ret_data

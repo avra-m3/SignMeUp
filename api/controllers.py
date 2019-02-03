@@ -2,16 +2,14 @@ import re
 import tempfile
 import uuid
 
-from flask import current_app as app
 from flask import Response, jsonify
+from flask import current_app as app
 from flask import request as inbound
 from flask_api import status
 from google.cloud import storage
-from peewee import DoesNotExist
-from playhouse.shortcuts import model_to_dict
 
-from core import process
-from model.registration import Registration
+from model import Registration
+from processor.core import link_card
 from utilities import barcodes
 from utilities.exception_router import NotAcceptable, NotFound, PreconditionFailed
 
@@ -54,15 +52,12 @@ def register(club_name):
         raise PreconditionFailed("Could not detect a valid barcode in the image provided")
 
     user_id = match.groups()[0]
-    try:
-        reg = Registration.get(club=club_name, student=user_id)
-    except DoesNotExist:
-        # Upload the file
-        image_location = create(card_number, club_name, temp.name)
-        reg = process(image_location, user_id, club_name)
 
-    # Return a copy of the new request object in the database.
-    return jsonify(model_to_dict(reg))
+    path_to_card = create(card_number, club_name, temp.name)
+
+    registration = link_card(path_to_card, user_id, club_name)
+
+    return jsonify(registration.to_dict())
 
 
 def get_registration(registration_id):
@@ -72,13 +67,10 @@ def get_registration(registration_id):
     :return: A JSON/Flask response containing the Registration object.
     :raises NotFound: if a registration matching the above does not exist
     """
-    try:
-        # TODO: Reconsider what we should be returning.
-        reg = Registration.get_by_id(registration_id)
-        return jsonify(model_to_dict(reg, recurse=True))
-
-    except DoesNotExist:
+    registration = Registration.filter.query_by(id=registration_id)
+    if not registration:
         raise NotFound("A registration was not found matching the information given")
+    return jsonify(registration.to_dict())
 
 
 def store(path: str, name: str):
