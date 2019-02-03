@@ -21,30 +21,24 @@ This project uses a production deployment of Docker but can be developed without
 ### Development Environment
 In the development environment each component should be testable without connecting the others. 
 #### API
-Use of the development environment requires (all of*) the following
+Use of the development environment requiresthe following
 
-\*
-*Temporary; Will consolidate cloud vision module to use OAuth2 as well.*
+1. A set of GCloud OAuth2 credentials with access to Storage Buckets and Cloud vision API's
 
-1. An API Key with access to use the google cloud vision API.
-
-2. An OAuth2 for use with google cloud storage 
-
-3. A google cloud storage bucket called csit-cache (need to make this configurable) with public access (will be changed with consolidation of authentication)
+2. A Google Cloud storage bucket
 
 
 ##### Environment Variables
 
-**OCR_AUTH_KEY**: The API token for use with cloud vision
+**GOOGLE_APPLICATION_CREDENTIALS**: The path to application credentials JSON for cloud vision
 
-**GOOGLE_APPLICATION_CREDENTIALS**: The path to application credentials for cloud vision
+**DATABASE_URI\***: The database URI see SQLAlchemy documentation for more information https://docs.sqlalchemy.org/en/latest/core/engines.html
 
-**DATABASE\***: One of 'sqlite', 'mysql', 'postgre' This determines the database provider.
-
-**DATABASE_CONFIG\*** Required if using anything but sqlite, should be a json object providing all required fields for the database.
-SEE: http://docs.peewee-orm.com/en/latest/peewee/database.html#using-mysql for more information
+**SECRET_KEY\*** This key is used for password encryption, please set it otherwise anyone will be able to unhash passwords your database with the default "Quack Quack" secret key
 
 \* *Optional*
+
+**Debug\*** This Doesn't do anything yet but will soon!
 
 
 ##### Endpoints
