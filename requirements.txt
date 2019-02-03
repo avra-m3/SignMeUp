@@ -1,12 +1,23 @@
+sqlalchemy
+# Google requirements
 google
 google-cloud-vision
 google-cloud-storage
+
+# Flask extensions
 flask
 flask-cors
+flask-security
 flask-api
+
+# Image Manipulation
 opencv-python
 imutils==0.4.6
-pyzbar
+
+# ORM/Database
+Flask-SQLAlchemy
+mysqlclient
+
+# MISC
 requests
-pymysql
-peewee
+

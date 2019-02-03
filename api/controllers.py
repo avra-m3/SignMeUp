@@ -67,7 +67,7 @@ def get_registration(registration_id):
     :return: A JSON/Flask response containing the Registration object.
     :raises NotFound: if a registration matching the above does not exist
     """
-    registration = Registration.filter.query_by(id=registration_id)
+    registration = Registration.query.filter_by(id=registration_id).first()
     if not registration:
         raise NotFound("A registration was not found matching the information given")
     return jsonify(registration.to_dict())

@@ -1,0 +1,16 @@
+version: '2'
+services:
+ api:
+  build:
+   context: ./api
+   dockerfile: Dockerfile
+ web:
+  build:
+   context: ./web
+   dockerfile: Dockerfile
+ gateway:
+   build:
+     context: ./web/gateway
+     dockerfile: Dockerfile
+   ports:
+    - "50080:80"

@@ -1,12 +1,13 @@
 import traceback
 
-from peewee import DoesNotExist
+from flask import jsonify
 
-from model.club import Club
-from model.registration import Registration
-from model.student import Student
-from modules.ocr.process import get_card_data
-from modules.ocr.request import request_ocr
+from model import User, Registration
+from model import Club
+
+from model.database import db
+from processor.modules.ocr.process import get_card_data
+from processor.modules.ocr.request import request_ocr
 from utilities.exception_router import APIException
 
 
@@ -35,19 +36,31 @@ def handle_processing_errors(fn):
 
 
 @handle_processing_errors
-def process(image_location: str, user_id, club_name):
-    try:
-        student = Student.get_by_id(user_id)
-        club, _ = Club.get_or_create(club_id=str(club_name))
-    except DoesNotExist:
-        data = request_ocr(image_location)
-        card_data = get_card_data(user_id, data)
+def link_card(path_to_card: str, user_id: str, club_name: str):
+    data = request_ocr(path_to_card)
+    result = get_card_data(data)
 
-        print(card_data)
+    print(result)
+    user = User.query.filter_by(student_id=result["user"]["student_id"]).first()
+    club = Club.query.filter_by(name=club_name).first()
 
-        student, _ = Student.get_or_create(**card_data)
-        club, _ = Club.get_or_create(club_id=str(club_name))
+    if not user:
+        user = User(**result["user"])
+        db.session.add(user)
+    if not club:
+        club = Club(name=club_name)
+        db.session.add(club)
 
-    return Registration.create(student=student.user_id, club=club.club_id, proof=image_location)
+    db.session.commit()
+    registration = Registration.query.filter_by(user_id=user.id, club_id=club.id).first()
+
+    if registration:
+        raise APIException("Registration Already Exists")
+
+    registration = Registration(user_id=user.id, club_id=club.id, evidence=path_to_card, expiry=result["card"]["expiry"])
+    db.session.add(registration)
+    db.session.commit()
+    print(registration.to_dict())
+    return registration
 
 

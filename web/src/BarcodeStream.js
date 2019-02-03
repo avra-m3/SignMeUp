@@ -42,6 +42,10 @@ export default class BarcodeStream extends React.Component {
             }
         });
         Quagga.onProcessed(function (result) {
+            if(this.state.capture){
+                this.setState({capture: false});
+                this.props.callback(result);
+            }
             let drawingCtx = Quagga.canvas.ctx.overlay,
                 drawingCanvas = Quagga.canvas.dom.overlay;
 
@@ -97,6 +101,13 @@ export default class BarcodeStream extends React.Component {
                 </div>
                 }
             </div>
+            <button onClick={this.capture} />
         </div>
+    }
+
+    capture = () => {
+        this.setState({
+            capture: true
+        })
     }
 }

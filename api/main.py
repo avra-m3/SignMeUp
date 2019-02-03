@@ -1,16 +1,17 @@
-import json
 import os
 
 from flask import Flask
 from flask_cors import CORS
 
-from model.base import BaseModel, SQLITE
-from objects import index, register, get_registration
+import controllers
+from model import database
+from utilities import security
 from utilities.router import create_routes, Route
+
+# from model.base import BaseModel
 
 app = Flask(__name__)
 CORS(app)
-
 """
 Guide to environment variables
 =====================================
@@ -23,26 +24,39 @@ GCLOUD_BUCKET       | No        | Sets the name of the google cloud bucket to pl
 
 """
 
-# Configure App from environment
-app.config["DATABASE"] = os.getenv("DATABASE") or SQLITE
-app.config["DATABASE_CONFIG"] = json.loads(os.getenv("DATABASE_CONFIG") or '{}')
+app.config["DEBUG"] = os.getenv("DEBUG") or False
+
+if not app.config["DEBUG"]:
+    if "DATABASE_URI" not in os.environ:
+        print("WARNING: No Environment variable 'DATABASE_URI' provided, using default")
+
+    if "SECRET_KEY" not in os.environ:
+        print("WARNING: Please set a 'SECRET_KEY' environment variable for password hash generation")
+
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URI") or "sqlite://tmp/signmeup/signups.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config["GCLOUD_BUCKET"] = os.getenv("GCLOUD_BUCKET") or "csit-cache"
 
 urls = [
-    Route('/', ['GET'], index),
-    Route('/register/<string:club_name>/', ['PUT', 'POST'], register),
-    Route('/registration/<string:registration_id>/', ['GET'], get_registration)
+    Route('/', ['GET'], controllers.index),
+    Route('/register/<string:club_name>/', ['PUT', 'POST'], controllers.register),
+    Route('/registration/<string:registration_id>/', ['GET'], controllers.get_registration)
 ]
 
-BaseModel.setup({
-    "DATABASE": app.config["DATABASE"],
-    "DATABASE_CONFIG": app.config["DATABASE_CONFIG"],
-    "FLASK_APP": app,
-})
+# BaseModel.setup(config=app.config["DATABASE"], app=app)
 
 create_routes(app, urls)
 
+
+@app.before_first_request
+def setup():
+    database.setup(app)
+    security.setup(app)
+
+
 if __name__ == '__main__':
-    app.debug = True
-    app.run(host="0.0.0.0", port=80)
+    app.run(host="0.0.0.0", port=80, debug=True)

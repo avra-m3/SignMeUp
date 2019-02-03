@@ -1,4 +1,4 @@
-from modules.ocr.bounding import BoundingBox
+from processor.modules.ocr.bounding import BoundingBox
 
 
 class TextField:
