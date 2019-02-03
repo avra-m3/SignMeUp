@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "prop-types": "^15.6.2",
+    "quagga": "^0.12.1",
     "react": "^16.5.2",
+    "react-countdown-clock": "^2.5.0",
     "react-dom": "^16.5.2",
     "react-scripts": "2.0.4"
   },

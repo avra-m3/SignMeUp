@@ -1,7 +1,7 @@
 import json
 from typing import List
 
-from modules.ocr.vertex import Vertex
+from processor.modules.ocr.vertex import Vertex
 from utilities.exception_router import APIException
 
 

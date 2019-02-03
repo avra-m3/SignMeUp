@@ -1,14 +1,14 @@
-import json
-import os
+import traceback
 
-import requests
-from peewee import IntegrityError, DoesNotExist
+from flask import jsonify
 
-from model.club import Club
-from model.registration import Registration
-from model.student import Student
-from modules.ocr.process import get_card_data
-from utilities.exception_router import APIException, Conflict
+from model import User, Registration
+from model import Club
+
+from model.database import db
+from processor.modules.ocr.process import get_card_data
+from processor.modules.ocr.request import request_ocr
+from utilities.exception_router import APIException
 
 
 def handle_processing_errors(fn):
@@ -25,78 +25,42 @@ def handle_processing_errors(fn):
             return fn(*args, **kwargs)
         except APIException as ex:
             print("Exception occurred while processing - {}".format(repr(ex)))
+            traceback.print_exc()
             raise
         except Exception as ex:
             print("Unexpected Exception occurred while processing - {}".format(repr(ex)))
+            traceback.print_exc()
             raise APIException()
 
     return wrapper
 
 
 @handle_processing_errors
-def process(image_location: str, user_id, club_name):
-    try:
-        student = Student.get_by_id(user_id)
-        club, _ = Club.get_or_create(club_id=str(club_name))
-    except DoesNotExist:
-        data = request_ocr(image_location)
-        card_data = get_card_data(user_id, data)
+def link_card(path_to_card: str, user_id: str, club_name: str):
+    data = request_ocr(path_to_card)
+    result = get_card_data(data)
 
-        print(card_data)
+    print(result)
+    user = User.query.filter_by(student_id=result["user"]["student_id"]).first()
+    club = Club.query.filter_by(name=club_name).first()
 
-        student, _ = Student.get_or_create(**card_data)
-        club, _ = Club.get_or_create(club_id=str(club_name))
+    if not user:
+        user = User(**result["user"])
+        db.session.add(user)
+    if not club:
+        club = Club(name=club_name)
+        db.session.add(club)
 
-    return Registration.create(student=student.user_id, club=club.club_id, proof=image_location)
+    db.session.commit()
+    registration = Registration.query.filter_by(user_id=user.id, club_id=club.id).first()
+
+    if registration:
+        raise APIException("Registration Already Exists")
+
+    registration = Registration(user_id=user.id, club_id=club.id, evidence=path_to_card, expiry=result["card"]["expiry"])
+    db.session.add(registration)
+    db.session.commit()
+    print(registration.to_dict())
+    return registration
 
 
-def request_ocr(url: str) -> dict:
-    """
-    Requests OCR data from google cloud.
-    This function requires an environment variable with the key 'OCR_AUTH_KEY';
-    The values should be an api key with access to google's text detection api
-    :return: A requests Response object
-    """
-
-    # Set Constants
-    ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate'
-    AUTH = os.getenv('OCR_AUTH_KEY')
-    HEADERS = {'Content-Type': 'application/json'}
-
-    # Set the request structure.
-    data = {
-        'requests': [{
-            # The image
-            'image': {
-                'source': {
-                    'imageUri': url,
-                },
-            },
-            # What we want in our response
-            "features": [
-                {
-                    "type": "TEXT_DETECTION"
-                }
-            ],
-            # Make processing more accurate by specifying english as the language
-            "imageContext": {
-                "languageHints": [
-                    "en"
-                ]
-            }
-        }]
-    }
-    # Make POST request and return the response.
-    response = requests.post(ENDPOINT,
-                             data=json.dumps(data),
-                             params={'key': AUTH},
-                             headers=HEADERS
-                             )
-
-    if response.status_code != 200:
-        raise APIException("Upstream gateway returned an unacceptable response", status=502)
-
-    data = response.json()
-    print(data)
-
-    return data

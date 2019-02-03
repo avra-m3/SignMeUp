@@ -1,6 +1,15 @@
+# Ignore IDE Files
 .idea
+
+# Ignore node artifacts
 web/node_modules
-processing
+
+# Ignore the database
 *.db
-# Ignore the cloud key
-*.json
+
+# Ignore files marked as 'Secret'
+*.secret
+
+# Ignore Python Compilation Artifacts
+*.pyc
+*.pyo

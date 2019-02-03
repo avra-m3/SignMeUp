@@ -1,14 +1,12 @@
-import json
-
-from modules.ocr.bounding import BoundingBox
+from processor.modules.ocr.bounding import BoundingBox
 
 
 class TextField:
     FLEX = 27
 
-    def __init__(self, data: json, type: str, matcher=None):
+    def __init__(self, data: dict, type: str, matcher=None):
         self.raw = data
-        self.bounds = BoundingBox(self.raw["boundingPoly"]["vertices"])
+        self.bounds = BoundingBox(self.raw["bounding_poly"]["vertices"])
         self.type = type
         self.matcher = matcher
 
