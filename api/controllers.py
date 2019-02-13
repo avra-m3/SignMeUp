@@ -6,9 +6,13 @@ from flask import Response, jsonify
 from flask import current_app as app
 from flask import request as inbound
 from flask_api import status
+from flask_security import http_auth_required, roles_accepted, SQLAlchemyUserDatastore, Security
+from flask_security.registerable import register_user
+from flask_security.utils import hash_password
 from google.cloud import storage
 
-from model import Registration
+from model import Registration, User, Club, Role
+from model.database import db
 from processor.core import link_card
 from utilities import barcodes
 from utilities.exception_router import NotAcceptable, NotFound, PreconditionFailed
@@ -22,6 +26,7 @@ def index():
     return Response("Online", status.HTTP_200_OK)
 
 
+@http_auth_required
 def register(club_name):
     """
     PUT a registration into the system
@@ -60,6 +65,7 @@ def register(club_name):
     return jsonify(registration.to_dict())
 
 
+@http_auth_required
 def get_registration(registration_id):
     """
     GET the details of an existing registration
@@ -73,6 +79,24 @@ def get_registration(registration_id):
     return jsonify(registration.to_dict())
 
 
+@http_auth_required
+def get_registration_by_details(student_id, club_name):
+    """
+    GET the details of an existing registration by the registration information
+    :param student_id:
+    :param club_name:
+    :return: A JSON/Flask response containing the Registration object.
+    :raises NotFound: if a registration matching the above does not exist
+    """
+    registration = Registration.query.join(User, User.id == Registration.user_id).join(
+        Club, Club.id == Registration.club_id).filter(
+        User.student_id == student_id, Club.name == club_name).first()
+    if not registration:
+        raise NotFound("A registration was not found matching the information given")
+    return jsonify(registration.to_dict())
+
+
+@http_auth_required
 def store(path: str, name: str):
     """
     Store path into the remote Storage with an object id of name
@@ -86,6 +110,27 @@ def store(path: str, name: str):
     upload = bucket.blob(name)
     upload.upload_from_filename(path)
     return upload.public_url
+
+
+@http_auth_required
+@roles_accepted("admin")
+def create_user(email: str, password: str):
+    datastore = SQLAlchemyUserDatastore(db, User, Role)
+
+    if not datastore.get_user(email):
+        datastore.create_user(email=email, password=hash_password(password))
+        db.session.commit()
+
+        return jsonify(User.query.filter(User.email == email).first().to_dict())
+    return jsonify(User.query.filter(User.email == email).first().to_dict())
+
+
+@http_auth_required
+def get_user(email):
+    user = User.query.filter(User.email == email).first()
+    if not user:
+        raise NotFound("A user with that email address did not exist")
+    return jsonify(user.to_dict())
 
 
 def create(card_number, club_name, path):

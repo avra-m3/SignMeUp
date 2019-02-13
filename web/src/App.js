@@ -1,10 +1,11 @@
 import React, {Component} from 'react';
 import './App.css';
-import BarcodeStream from "./BarcodeStream";
+import config from "./config"
+
 
 class App extends Component {
     cleanStatus = {
-        value: "Scanning",
+        value: "Scan",
         extras: {},
         reset: {
             timeout: null,
@@ -13,7 +14,7 @@ class App extends Component {
     };
 
     state = {
-        club: "test",
+        club: "csit",
         status: this.cleanStatus
 
     };
@@ -123,42 +124,65 @@ class App extends Component {
                     </div>
                 </div>
 
-                <BarcodeStream id="interactive"
-                               style={stream}
-                               callback={this.onBarcodeDetected}
-                               status={this.state.status}
-                               reset={this.resetState}
-                />
             </div>
         );
     }
 
-    onBarcodeDetected = (barcode) => {
-        const rx = /21259(\d{7})\d{2]/g;
-        let match = barcode.codeResult.code.match(rx);
-        console.log(`Barcode detected ${barcode.codeResult.code}`);
-        if (match !== null) {
+    startCapture = (blob) => {
+        let newStatus = {
+            value: "Registering",
+            extras: {},
+            reset: {
+                timeout: undefined,//setTimeout(this.resetState, 5000),
+                seconds: Date.now() + 5000
+            }
+        };
+        this.setState({
+            status: newStatus
+        });
+
+        fetch(`${config.api}/register/${this.state.club}`, {
+            method: "post",
+            body: blob
+        }).then((response) => {
+            if (response.status !== 200) {
+                throw Error("Bad status " + response.statusText)
+            }
+            return response.json()
+        }).then((data) => {
+            return {
+                user: data.user,
+                club: data.club,
+                card: {
+                    expiry: data.expiry
+                }
+            }
+        }).then((extras) => {
             let newStatus = {
-                value: "Found",
-                extras: {
-                    user_id: match[0]
-                },
+                value: "Registered",
+                extras: extras,
                 reset: {
-                    timeout: setTimeout(this.resetState, 5000),
+                    timeout: setTimeout(() => this.setState({status: this.cleanStatus}), 5000),
                     seconds: Date.now() + 5000
                 }
             };
             this.setState({
                 status: newStatus
             })
-        }
-    };
+        }).catch((error) => {
+            console.log("Caught Error during capture process");
+            console.log(error);
+            newStatus = {
+                value: "Error",
+                extras: error,
+                reset: {
+                    timeout: setTimeout(() => this.setState({status: this.cleanStatus}), 5000),
+                    seconds: Date.now() + 5000
+                }
+            }
+        })
 
-    resetState = () => {
-        this.setState({
-            status: this.cleanStatus
-        });
-    }
+    };
 
 }
 

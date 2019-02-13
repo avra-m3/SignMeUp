@@ -1,4 +1,3 @@
-sqlalchemy
 # Google requirements
 google
 google-cloud-vision
@@ -15,8 +14,12 @@ opencv-python
 imutils==0.4.6
 
 # ORM/Database
-Flask-SQLAlchemy
+sqlalchemy
 mysqlclient
+Flask-SQLAlchemy
+Flask-Migrate
+bcrypt
+
 
 # MISC
 requests

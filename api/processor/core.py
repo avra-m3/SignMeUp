@@ -1,7 +1,5 @@
 import traceback
 
-from flask import jsonify
-
 from model import User, Registration
 from model import Club
 
@@ -40,7 +38,6 @@ def link_card(path_to_card: str, user_id: str, club_name: str):
     data = request_ocr(path_to_card)
     result = get_card_data(data)
 
-    print(result)
     user = User.query.filter_by(student_id=result["user"]["student_id"]).first()
     club = Club.query.filter_by(name=club_name).first()
 

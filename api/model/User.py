@@ -12,7 +12,7 @@ roles_users = db.Table('roles_users',
 class User(BaseModel, UserMixin):
     id = db.Column(db.Integer(), primary_key=True)
 
-    student_id = db.Column(db.String(255), unique=True)
+    student_id = db.Column(db.String(255), unique=True, nullable=True)
     email = db.Column(db.String(255), unique=True)
 
     first_name = db.Column(db.String(255))
