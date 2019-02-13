@@ -4,13 +4,13 @@ services:
   build:
    context: ./api
    dockerfile: Dockerfile
- web:
-  build:
-   context: ./web
-   dockerfile: Dockerfile
- gateway:
+# web:
+#  build:
+#   context: ./web
+#   dockerfile: Dockerfile
+ proxy:
    build:
-     context: ./web/gateway
+     context: ./proxy
      dockerfile: Dockerfile
    ports:
     - "50080:80"
