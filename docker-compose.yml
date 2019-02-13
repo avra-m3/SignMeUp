@@ -3,11 +3,16 @@ services:
  api:
   build:
    context: ./api
+  restart: always
+  env_file:
+    - ".env"
  web:
   build:
    context: ./web
+  restart: always
  proxy:
    build:
      context: ./proxy
    ports:
     - "50080:80"
+   restart: always
