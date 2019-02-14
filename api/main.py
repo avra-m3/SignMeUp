@@ -44,6 +44,8 @@ app.config["GCLOUD_BUCKET"] = os.getenv("GCLOUD_BUCKET") or "csit-cache"
 
 urls = [
     Route('/', ['GET'], controllers.index),
+    Route('/authorize', ['GET'], controllers.authorize),
+    Route('/club', ['GET'], controllers.get_clubs),
     Route('/club/<string:club_name>/register', ['PUT', 'POST'], controllers.register),
     Route("/club/<string:club_name>/register/<string:student_id>", ['GET'], controllers.get_registration_by_details),
     Route('/registration/<string:registration_id>', ['GET'], controllers.get_registration),

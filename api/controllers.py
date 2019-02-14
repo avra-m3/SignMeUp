@@ -6,12 +6,12 @@ from flask import Response, jsonify
 from flask import current_app as app
 from flask import request as inbound
 from flask_api import status
-from flask_security import http_auth_required, roles_accepted, SQLAlchemyUserDatastore, Security
-from flask_security.registerable import register_user
+from flask_login import current_user
+from flask_security import http_auth_required, roles_accepted, SQLAlchemyUserDatastore
 from flask_security.utils import hash_password
 from google.cloud import storage
 
-from model import Registration, User, Club, Role
+from model import Registration, User, Club, Role, BaseModel
 from model.database import db
 from processor.core import link_card
 from utilities import barcodes
@@ -131,6 +131,22 @@ def get_user(email):
     if not user:
         raise NotFound("A user with that email address did not exist")
     return jsonify(user.to_dict())
+
+
+@http_auth_required
+def get_clubs():
+    return jsonify({
+        "data": [BaseModel.to_dict(club) for club in Club.query.all()]
+    })
+
+
+@http_auth_required
+def authorize():
+    return jsonify({
+        "email": current_user.email,
+        "active": current_user.active,
+        "id": current_user.id
+    })
 
 
 def create(card_number, club_name, path):

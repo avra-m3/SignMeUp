@@ -1,188 +1,64 @@
 import React, {Component} from 'react';
 import './App.css';
-import config from "./config"
+import LoginForm from "./LoginForm";
+import ClubSelector from "./ClubSelector";
 
+const modes = {
+    capture: "capture",
+    retrieve: "retrieve"
+};
 
 class App extends Component {
-    cleanStatus = {
-        value: "Scan",
-        extras: {},
-        reset: {
-            timeout: null,
-            seconds: null,
-        }
-    };
 
     state = {
-        club: "csit",
-        status: this.cleanStatus
-
+        mode: modes.capture,
+        authorization: undefined,
+        register_to: undefined,
     };
 
-    render() {
-        let {club} = this.state;
-        let status = this.state.status.value;
-
-        const parent = {
-            display: "flex",
-            flexDirection: "column",
-            width: "100%",
-            height: "100%",
-            position: "fixed"
-        };
-
-        const stream = {
-            display: "flex",
-            flexDirection: "column",
-            height: "100%",
-            width: "100%",
-            backgroundColor: "black",
-            position: 'relative'
-        };
-
-        const info = {
-            display: "flex",
-            flexDirection: "row",
-            paddingBottom: "20px",
-        };
-
-        const infoCol1 = {
-            display: "flex",
-            flexDirection: "column",
-            paddingLeft: 5,
-            paddingRight: 5,
-            marginRight: "auto",
-        };
-
-        const infoCol2 = {
-            display: "flex",
-            flexDirection: "column",
-            paddingLeft: 5,
-            paddingRight: 5,
-            marginLeft: "auto",
-            textAlign: "right",
-            marginTop: "auto",
-        };
-
-        const colorMap = {
-            "Found": "darkgreen",
-            "Scanning": "darkblue",
-            "Registering": "darkgreen",
-            "RegistrationFailed": "darkred",
-            "RegistrationSuccess": "darkgreen",
-            "Errored": "darkred",
-            "Blocked": "darkred",
-        };
-
-        const statusDescr = {
-            Found: <i>Tap anywhere to register!</i>,
-            Registering: <i>We are signing you up!</i>,
-            Blocked: <b>Please allow access to the camera in order to sign up</b>,
-            Errored: <b>This browser does not support camera access :(</b>,
-            Scanning: <div>
-                <i>Place your valid student ID in front of the camera.</i>
-                <div><b>Make sure your name and student ID are clearly visible!</b></div>
-            </div>,
-            RegistrationFailed: <div>
-                <i>We couldn't sign you up :(</i>
-                <div><b>Reason: </b>?</div>
-                <div>Tap to continue...</div>
-            </div>,
-            RegistrationSuccess: <div>
-                <i>You've signed up to {club}</i>
-                <div><b>Tap to dismiss...</b></div>
-            </div>
-        };
-
-        let statusStyle = {
-            color: colorMap[status],
-        };
-
-        let logo = {
-            color: "#EE0026"
-        };
-
-        let isErr = ["Blocked", "Errored"].includes(status);
-
-        return (
-            <div style={parent}>
-                <div id="stream-info" style={info}>
-                    <div style={infoCol1}>
-                        <div>
-                            <h3>
-                                <b style={logo}>SignMeUp</b> to rmit club "{club}"
-                            </h3></div>
-                        {
-                            statusDescr[status]
-                        }
-                    </div>
-                    <div style={infoCol2}>
-                        <div style={statusStyle}>
-                            <b style={{color: "white", backgroundColor: colorMap[status]}}>
-                                {isErr ? "Offline" : "Online"}
-                            </b> {colorMap.hasOwnProperty(status) && "-"} {status}</div>
-                    </div>
-                </div>
-
-            </div>
-        );
+    componentDidMount(){
+        let auth = localStorage.getItem("auth");
+        let club = localStorage.getItem("club");
+        this.setState({
+            authorization: auth || undefined,
+            register_to: club || undefined
+        })
     }
 
-    startCapture = (blob) => {
-        let newStatus = {
-            value: "Registering",
-            extras: {},
-            reset: {
-                timeout: undefined,//setTimeout(this.resetState, 5000),
-                seconds: Date.now() + 5000
-            }
-        };
-        this.setState({
-            status: newStatus
-        });
 
-        fetch(`${config.api}/register/${this.state.club}`, {
-            method: "post",
-            body: blob
-        }).then((response) => {
-            if (response.status !== 200) {
-                throw Error("Bad status " + response.statusText)
-            }
-            return response.json()
-        }).then((data) => {
-            return {
-                user: data.user,
-                club: data.club,
-                card: {
-                    expiry: data.expiry
+    render() {
+        const isAuthorized = this.state.authorization !== undefined;
+        const isClubSelected = this.state.register_to !== undefined && isAuthorized;
+        return (
+            <div>
+                {
+                    !isAuthorized && <LoginForm
+                        callback={this.setAuthorization}
+                    />
                 }
-            }
-        }).then((extras) => {
-            let newStatus = {
-                value: "Registered",
-                extras: extras,
-                reset: {
-                    timeout: setTimeout(() => this.setState({status: this.cleanStatus}), 5000),
-                    seconds: Date.now() + 5000
+                {
+                    !isClubSelected && isAuthorized && <ClubSelector
+                        callback={this.setRegisterTo}
+                        deauthorizationCallback={this.resetAuthorization}
+                        authorization={this.state.authorization}
+                    />
                 }
-            };
-            this.setState({
-                status: newStatus
-            })
-        }).catch((error) => {
-            console.log("Caught Error during capture process");
-            console.log(error);
-            newStatus = {
-                value: "Error",
-                extras: error,
-                reset: {
-                    timeout: setTimeout(() => this.setState({status: this.cleanStatus}), 5000),
-                    seconds: Date.now() + 5000
-                }
-            }
-        })
+            </div>
 
+        )
+    }
+
+    setAuthorization = (auth) => {
+        this.setState({authorization: auth});
+        localStorage.setItem("auth", auth)
     };
+    setRegisterTo = (club) => {
+        this.setState({register_to: club});
+        localStorage.setItem("club", club)
+    };
+    setRegistration = (club) => this.setState({register_to: club});
+    resetAuthorization = () => this.setState({authorization: undefined})
+
 
 }
 
