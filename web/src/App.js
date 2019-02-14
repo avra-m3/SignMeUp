@@ -2,21 +2,17 @@ import React, {Component} from 'react';
 import './App.css';
 import LoginForm from "./LoginForm";
 import ClubSelector from "./ClubSelector";
+import RegisterFlow from "./RegisterFlow";
 
-const modes = {
-    capture: "capture",
-    retrieve: "retrieve"
-};
 
 class App extends Component {
 
     state = {
-        mode: modes.capture,
         authorization: undefined,
         register_to: undefined,
     };
 
-    componentDidMount(){
+    componentDidMount() {
         let auth = localStorage.getItem("auth");
         let club = localStorage.getItem("club");
         this.setState({
@@ -42,6 +38,12 @@ class App extends Component {
                         deauthorizationCallback={this.resetAuthorization}
                         authorization={this.state.authorization}
                     />
+                }
+                {
+                    isClubSelected && isAuthorized &&
+                    <RegisterFlow authorization={this.state.authorization}
+                                  deauthorizationCallback={this.resetAuthorization}
+                                  club={this.state.register_to}/>
                 }
             </div>
 

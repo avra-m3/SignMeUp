@@ -2,6 +2,7 @@
   "api": "http://localhost:5000",
   "endpoints": {
     "authorize": "/authorize",
-    "clubs": "/club"
+    "clubs": "/club",
+    "register": "/club/{}/register"
   }
 }

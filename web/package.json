@@ -6,10 +6,9 @@
     "@material-ui/core": "^3.9.2",
     "@material-ui/icons": "^3.0.2",
     "prop-types": "^15.6.2",
-    "quagga": "^0.12.1",
     "react": "^16.5.2",
-    "react-countdown-clock": "^2.5.0",
     "react-dom": "^16.5.2",
+    "react-html5-camera-photo": "^1.2.9",
     "react-scripts": "^2.1.5"
   },
   "scripts": {
