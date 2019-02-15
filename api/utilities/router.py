@@ -71,14 +71,14 @@ class Route:
         :return: self
         """
         # Attempt json, fall back to form data
-        data = request.json
-
-        if not data:
-            data = request.values
 
         func = self._call
 
         def wrapper(*args, **kwargs):
+            data = request.json
+
+            if not data:
+                data = request.values
             context = dict([(c[0], [len(c) > 1 and c[1] or None, len(c) > 2 and c[2] or False]) for c in values])
             for argument in data:
                 if argument in context.keys():

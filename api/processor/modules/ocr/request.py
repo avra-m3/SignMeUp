@@ -76,7 +76,7 @@ def request_ocr(url: str) -> list:
             ],
         })
         if not response.text_annotations:
-            raise RuntimeError()
+            raise RuntimeError(str(response))
     except Exception:
         raise APIException("Upstream gateway returned an unacceptable response", status=502)
     return response_as_dict(response.text_annotations)

@@ -1,14 +1,11 @@
 import traceback
 
-from flask import jsonify
-
-from model import User, Registration
 from model import Club
-
+from model import User, Registration
 from model.database import db
 from processor.modules.ocr.process import get_card_data
 from processor.modules.ocr.request import request_ocr
-from utilities.exception_router import APIException
+from utilities.exception_router import APIException, BadRequest
 
 
 def handle_processing_errors(fn):
@@ -40,7 +37,6 @@ def link_card(path_to_card: str, user_id: str, club_name: str):
     data = request_ocr(path_to_card)
     result = get_card_data(data)
 
-    print(result)
     user = User.query.filter_by(student_id=result["user"]["student_id"]).first()
     club = Club.query.filter_by(name=club_name).first()
 
@@ -55,12 +51,10 @@ def link_card(path_to_card: str, user_id: str, club_name: str):
     registration = Registration.query.filter_by(user_id=user.id, club_id=club.id).first()
 
     if registration:
-        raise APIException("Registration Already Exists")
+        raise BadRequest("Registration Already Exists")
 
-    registration = Registration(user_id=user.id, club_id=club.id, evidence=path_to_card, expiry=result["card"]["expiry"])
+    registration = Registration(user_id=user.id, club_id=club.id, evidence=path_to_card,
+                                expiry=result["card"]["expiry"])
     db.session.add(registration)
     db.session.commit()
-    print(registration.to_dict())
     return registration
-
-

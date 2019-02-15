@@ -1,0 +1,10 @@
+# Migrate in powershell
+
+$env:GOOGLE_APPLICATION_CREDENTIALS="C:\Users\avram\PycharmProjects\SignMeUp\Test001-f7458c4c282b.secret"
+$env:DATABASE_URI="mysql+mysqldb://root:@localhost:3306/signmeup"
+$env:FLASK_APP="./main.py"
+$env:SECRET_KEY="Quack Quack"
+$env:PYTHONPATH=$pwd
+
+flask db upgrade
+flask db migrate

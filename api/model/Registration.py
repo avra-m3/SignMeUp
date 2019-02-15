@@ -1,3 +1,5 @@
+from sqlalchemy import Index
+
 from model.base import BaseModel
 from model.database import db
 
@@ -9,6 +11,8 @@ class Registration(BaseModel):
 
     evidence = db.Column(db.String(255))
     expiry = db.Column(db.DateTime)
+
+    __table_args__ = (Index('_user_club_registration_composite', 'user_id', 'club_id'),)
 
     _default_fields = ["id", "expiry"]
 

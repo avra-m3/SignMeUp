@@ -3,14 +3,16 @@ services:
  api:
   build:
    context: ./api
-   dockerfile: Dockerfile
+  restart: always
+  env_file:
+    - ".env"
  web:
   build:
    context: ./web
-   dockerfile: Dockerfile
- gateway:
+  restart: always
+ proxy:
    build:
-     context: ./web/gateway
-     dockerfile: Dockerfile
+     context: ./proxy
    ports:
     - "50080:80"
+   restart: always
