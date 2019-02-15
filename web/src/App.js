@@ -16,12 +16,13 @@ class App extends Component {
         let auth = localStorage.getItem("auth");
         let club = localStorage.getItem("club");
 
-        let auth_expiry = new Date(localStorage.getItem("auth_expiry"));
+        let expiry = new Date(localStorage.getItem("auth_expiry"));
+        let timeout = setTimeout(this.resetAuthorization, expiry);
 
-        setTimeout(this.resetAuthorization, auth_expiry);
         this.setState({
             authorization: auth || undefined,
-            register_to: club || undefined
+            register_to: club || undefined,
+            auth_timeout: timeout
         })
     }
 
@@ -56,22 +57,30 @@ class App extends Component {
 
     setAuthorization = auth => remember => {
         let expiry = new Date();
+
         if (remember) {
             expiry.setMonth(expiry.getMonth() + 1);
         } else {
             expiry.setHours(expiry.getHours() + 3);
         }
-        this.setState({authorization: auth});
+
+        let timeout = setTimeout(this.resetAuthorization, expiry);
+        this.setState({authorization: auth, auth_timeout: timeout});
+
         localStorage.setItem("auth", auth);
-        localStorage.setItem("auth_expiry", expiry.toJSON())
+        localStorage.setItem("auth_expiry", expiry.toJSON());
+
+
     };
     setRegisterTo = (club) => {
         this.setState({register_to: club});
         localStorage.setItem("club", club)
     };
     resetAuthorization = () => {
+        clearTimeout(this.state.auth_timeout);
         this.setState({
-            authorization: undefined
+            authorization: undefined,
+            auth_timeout: undefined,
         });
         localStorage.removeItem("auth");
         localStorage.removeItem("auth_expiry");
