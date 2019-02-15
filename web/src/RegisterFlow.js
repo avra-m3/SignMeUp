@@ -7,6 +7,7 @@ import CardCapture from "./Components/CardCapture";
 import Loading from "./Components/Loading";
 import Results from "./Components/Results";
 import ErrorDisplay from "./Components/ErrorDisplay";
+import {dataURItoBlob} from "./utils";
 
 
 const styles = theme => ({
@@ -49,9 +50,10 @@ class RegisterFlow extends Component {
         })
     };
 
-    onCapture = (image) => {
+    onCapture = (dataURI) => {
         let form = new FormData();
-        form.append("student_card", image);
+        let image = dataURItoBlob(dataURI);
+        form.append("student_card", image, image.name);
         this.setState({
             request: {
                 data: form,
@@ -105,7 +107,7 @@ class RegisterFlow extends Component {
 
         const isCapturing = this.state.request === undefined;
         const isRetrieving = !isCapturing && this.state.request.response === null;
-        const isShowing = !isCapturing && !isRetrieving && this.state.request.err === null;
+        const isShowing = !isCapturing && !isRetrieving && !this.state.request.err;
         const isErred = !isCapturing && !isRetrieving && !isCapturing;
 
         return (
