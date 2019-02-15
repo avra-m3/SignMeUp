@@ -15,6 +15,10 @@ class App extends Component {
     componentDidMount() {
         let auth = localStorage.getItem("auth");
         let club = localStorage.getItem("club");
+
+        let auth_expiry = new Date(localStorage.getItem("auth_expiry"));
+
+        setTimeout(this.resetAuthorization, auth_expiry);
         this.setState({
             authorization: auth || undefined,
             register_to: club || undefined
@@ -50,16 +54,28 @@ class App extends Component {
         )
     }
 
-    setAuthorization = (auth) => {
+    setAuthorization = auth => remember => {
+        let expiry = new Date();
+        if (remember) {
+            expiry.setMonth(expiry.getMonth() + 1);
+        } else {
+            expiry.setHours(expiry.getHours() + 3);
+        }
         this.setState({authorization: auth});
-        localStorage.setItem("auth", auth)
+        localStorage.setItem("auth", auth);
+        localStorage.setItem("auth_expiry", expiry.toJSON())
     };
     setRegisterTo = (club) => {
         this.setState({register_to: club});
         localStorage.setItem("club", club)
     };
-    setRegistration = (club) => this.setState({register_to: club});
-    resetAuthorization = () => this.setState({authorization: undefined})
+    resetAuthorization = () => {
+        this.setState({
+            authorization: undefined
+        });
+        localStorage.removeItem("auth");
+        localStorage.removeItem("auth_expiry");
+    }
 
 
 }

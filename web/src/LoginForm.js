@@ -129,7 +129,7 @@ class LoginForm extends Component {
             })
         }).then((response) => {
             if (response.status === 200) {
-                this.props.callback('Basic ' + btoa(`${this.state.username}:${this.state.password}`))
+                this.props.callback('Basic ' + btoa(`${this.state.username}:${this.state.password}`), this.state.remember)
             } else {
                 this.setState({
                     result: response.status
