@@ -53,7 +53,7 @@ class ErrorDisplay extends Component {
                     <Typography>{error.status}</Typography>
                     <Typography>{error.message}</Typography>
                 </div>
-                <Button onClick={this.props.onContinue}/>
+                <Button onClick={this.props.onContinue}>Continue</Button>
             </Paper>
         )
     }

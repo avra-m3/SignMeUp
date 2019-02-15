@@ -1,23 +1,16 @@
 import React, {Component} from 'react';
 import * as PropTypes from "prop-types";
 import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import Icon from '@material-ui/core/Icon';
 import {withStyles} from '@material-ui/core/styles';
-import Camera from 'react-html5-camera-photo';
 import config from './config'
 import CardCapture from "./Components/CardCapture";
-import {handleFetchErrors} from "./utils";
 import Loading from "./Components/Loading";
 import Results from "./Components/Results";
 import ErrorDisplay from "./Components/ErrorDisplay";
 
 
 const styles = theme => ({
-    root:{
-    }
+    root: {}
 
 });
 
@@ -50,6 +43,63 @@ class RegisterFlow extends Component {
 
     };
 
+    resetState = () => {
+        this.setState({
+            request: undefined
+        })
+    };
+
+    onCapture = (image) => {
+        let form = new FormData();
+        form.append("student_card", image);
+        this.setState({
+            request: {
+                data: form,
+                err: null,
+                response: null
+            }
+        });
+        fetch(`${config.api}${config.endpoints.register.replace("{club_id}", this.props.club)}`, {
+            method: "post",
+            headers: new Headers({
+                "Authorization": this.props.authorization
+            }),
+            body: form
+        }).then((response) => {
+            return response.json()
+        }).then(data => {
+            if (data.code === 200) {
+                this.setState({
+                    request: {
+                        data: form,
+                        err: null,
+                        response: data
+                    }
+                })
+            } else {
+                this.setState({
+                    request: {
+                        data: form,
+                        err: data.message,
+                        response: data
+                    }
+                })
+            }
+        }).catch((error) => {
+            this.setState({
+                request: {
+                    data: form,
+                    err: error.message,
+                    response: {
+                        code: -1,
+                        message: "An unexpected error occurred",
+                        status: ""
+                    }
+                }
+            })
+        })
+    };
+
     render() {
         const {classes} = this.props;
 
@@ -68,49 +118,6 @@ class RegisterFlow extends Component {
                 </Paper>
             </div>
         )
-    }
-
-    resetState = () => {
-        this.setState({
-            request: undefined
-        })
-    };
-
-    onCapture = (image) => {
-        let form = new FormData();
-        form.append("student_card", image);
-        this.setState({
-            request: {
-                data: form,
-                err: null,
-                response: null
-            }
-        });
-        fetch(`${config.api}${config.endpoints.register.format(this.props.club)}`, {
-            method: "post",
-            headers: new Headers({
-                "Authorization": this.props.authorization
-            }),
-            body: form
-        }).then((response) => {
-            if(response.ok){
-                this.setState({
-                    request: {
-                        data: form,
-                        err: null,
-                        response: response.json()
-                    }
-                })
-            }else{
-                this.setState({
-                    request: {
-                        data: form,
-                        err: response.statusText,
-                        response: response.json()
-                    }
-                })
-            }
-        })
     }
 
 
