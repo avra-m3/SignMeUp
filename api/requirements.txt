@@ -12,6 +12,7 @@ flask-api
 # Image Manipulation
 opencv-python
 imutils==0.4.6
+pyzbar
 
 # ORM/Database
 sqlalchemy

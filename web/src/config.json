@@ -1,5 +1,5 @@
 {
-  "api": "http://localhost:5000",
+  "api": "http://localhost:50080/api",
   "endpoints": {
     "authorize": "/authorize",
     "clubs": "/club",

@@ -13,7 +13,7 @@ RUN npm install
 # add app
 COPY . /usr/src/app
 
-RUN npm build
+RUN npm run build
 
 ##################
 ### production ###
@@ -23,7 +23,7 @@ RUN npm build
 FROM nginx:1.13.9-alpine
 
 # copy artifact build from the 'build environment'
-COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+COPY --from=builder /usr/src/app/build /usr/share/nginx/html
 
 COPY nginx.conf /etc/nginx/nginx.conf
 

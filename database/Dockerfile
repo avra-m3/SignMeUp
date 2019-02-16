@@ -1,0 +1,1 @@
+FROM gcr.io/cloudsql-docker/gce-proxy:1.12/cloud_sql_proxy

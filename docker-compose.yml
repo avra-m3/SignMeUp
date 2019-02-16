@@ -6,6 +6,8 @@ services:
   restart: always
   env_file:
     - ".env"
+  volumes:
+    - "./google-cloud-key.secret:/config/gcloud.secret"
  web:
   build:
    context: ./web
