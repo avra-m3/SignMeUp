@@ -86,7 +86,9 @@ class LoginForm extends Component {
                     <Typography component="h1" variant="h5">
                         Sign in
                     </Typography>
-                    <form className={classes.form}>
+                    <form className={classes.form}
+                          onSubmit={this.attemptLogin}
+                    >
                         <FormControl margin="normal" required fullWidth>
                             <InputLabel htmlFor="email">Email Address</InputLabel>
                             <Input id="email" name="email" autoComplete="email" autoFocus
@@ -112,7 +114,6 @@ class LoginForm extends Component {
                             variant="contained"
                             color="primary"
                             className={classes.submit}
-                            onClick={this.attemptLogin}
                         >
                             Sign in
                         </Button>
@@ -122,13 +123,14 @@ class LoginForm extends Component {
         );
     }
 
-    attemptLogin = () => {
+    attemptLogin = (event) => {
         fetch(`${config.api}${config.endpoints.authorize}`, {
             headers: new Headers({
                 'Authorization': 'Basic ' + btoa(`${this.state.username}:${this.state.password}`),
             })
         }).then((response) => {
-            if (response.status === 200) {
+            if (response.ok) {
+                console.log("Running callback");
                 this.props.callback('Basic ' + btoa(`${this.state.username}:${this.state.password}`), this.state.remember)
             } else {
                 this.setState({
@@ -141,7 +143,8 @@ class LoginForm extends Component {
                 result: error.valueOf()
             });
             console.log(error)
-        })
+        });
+        event.preventDefault()
     }
 }
 

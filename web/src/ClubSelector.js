@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import * as PropTypes from "prop-types";
-import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -12,15 +11,14 @@ import {withStyles} from '@material-ui/core/styles';
 import {handleFetchErrors} from "./utils";
 import Icon from "@material-ui/core/Icon";
 import Button from "@material-ui/core/Button";
+import LinearProgress from "../node_modules/@material-ui/core/LinearProgress/LinearProgress";
+import Paper from "../node_modules/@material-ui/core/Paper/Paper";
 
 
 const styles = theme => ({
     root: {
         display: 'flex',
         flexDirection: 'column',
-        maxWidth: "300px",
-        margin: "auto"
-
     },
     formControl: {
         margin: theme.spacing.unit * 3,
@@ -33,6 +31,14 @@ const styles = theme => ({
     },
     rightIcon: {
         marginLeft: theme.spacing.unit,
+    },
+    progress: {
+        flexGrow: 1,
+    },
+    paper: {
+        ...theme.mixins.gutters(),
+        paddingTop: theme.spacing.unit * 2,
+        paddingBottom: theme.spacing.unit * 2,
     },
 
 });
@@ -52,6 +58,13 @@ class ClubSelector extends Component {
     };
 
     componentDidMount() {
+        this.fetchClubList();
+    }
+
+    fetchClubList = () => {
+        this.setState({
+            available: null
+        });
         fetch(`${config.api}${config.endpoints.clubs}`, {
             headers: new Headers({
                 Authorization: this.props.authorization
@@ -71,7 +84,7 @@ class ClubSelector extends Component {
                 available: undefined
             })
         })
-    }
+    };
 
     render() {
         const {classes} = this.props;
@@ -82,40 +95,51 @@ class ClubSelector extends Component {
 
 
         return (
-            <Paper>
-                {
-                    isLoadingClubs ? <div>
-                            <Typography variant="headline" elevation={4}>Loading...</Typography>
-                        </div> :
-                        isLoadingClubsErred ?
-                            <Typography variant="headline" elevation={4}>Could not load clubs (Unknown
-                                error)</Typography> :
-                            <div className={classes.root}>
-                                <FormControl component="fieldset" className={classes.formControl}>
-                                    <FormLabel component="legend">Clubs</FormLabel>
-                                    <RadioGroup
-                                        aria-label="Clubs"
-                                        name="clubs"
-                                        className={classes.group}
-                                        value={this.state.selected}
-                                        onChange={this.selectClub}
-                                    >
-                                        {clubs.map(club => {
-                                            return (
-                                                <FormControlLabel value={club.name} control={<Radio/>}
-                                                                  label={club.name}/>)
+            <div>
 
-                                        })}
-                                    </RadioGroup>
-                                </FormControl>
-                                <Button variant="contained" color="primary" className={classes.button}
-                                        onClick={event => this.props.callback(this.state.selected)}>
-                                    Continue
-                                    <Icon className={classes.rightIcon}>send</Icon>
-                                </Button>
-                            </div>
+                {isLoadingClubs && <div className={classes.root}>
+                    <div className={classes.progress}>
+                        <LinearProgress/>
+                    </div>
+                </div>}
+
+                {isLoadingClubsErred && <div className={classes.root}>
+                    <div className={classes.progress}>
+                        <LinearProgress color="secondary" variant="determinate" value={100}/>
+                    </div>
+                    <Paper className={classes.paper}>
+                        <Typography variant="headline" elevation={4}>Error</Typography>
+                        <Typography variant="subtitle1" elevation={4}>Something went wrong connecting to the server</Typography>
+                        <Button variant="contained" color="primary" fullWidth={false} onClick={this.fetchClubList}>Click here to Try
+                            Again</Button>
+                    </Paper>
+                </div>}
+                {!isLoadingClubs && !isLoadingClubsErred && <div className={classes.root}>
+                    <FormControl component="fieldset" className={classes.formControl}>
+                        <FormLabel component="legend">Clubs</FormLabel>
+                        <RadioGroup
+                            aria-label="Clubs"
+                            name="clubs"
+                            className={classes.group}
+                            value={this.state.selected}
+                            onChange={this.selectClub}
+                        >
+                            {clubs.map(club => {
+                                return (
+                                    <FormControlLabel key={club.id} value={club.name} control={<Radio/>}
+                                                      label={club.name}/>)
+
+                            })}
+                        </RadioGroup>
+                    </FormControl>
+                    <Button variant="contained" color="primary" className={classes.button}
+                            onClick={event => this.props.callback(this.state.selected)}>
+                        Continue
+                        <Icon className={classes.rightIcon}>send</Icon>
+                    </Button>
+                </div>
                 }
-            </Paper>
+            </div>
         )
     }
 
