@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import * as PropTypes from "prop-types";
-import Paper from '@material-ui/core/Paper';
 import {withStyles} from '@material-ui/core/styles';
 import config from './config'
 import CardCapture from "./Components/CardCapture";
@@ -11,7 +10,9 @@ import {dataURItoBlob} from "./utils";
 
 
 const styles = theme => ({
-    root: {}
+    root: {
+        height: "100%",
+    }
 
 });
 
@@ -56,7 +57,7 @@ class RegisterFlow extends Component {
         form.append("student_card", image, image.name);
         this.setState({
             request: {
-                data: form,
+                data: dataURI,
                 err: null,
                 response: null
             }
@@ -73,7 +74,7 @@ class RegisterFlow extends Component {
             if (data.code === 200) {
                 this.setState({
                     request: {
-                        data: form,
+                        data: dataURI,
                         err: null,
                         response: data
                     }
@@ -81,7 +82,7 @@ class RegisterFlow extends Component {
             } else {
                 this.setState({
                     request: {
-                        data: form,
+                        data: dataURI,
                         err: data.message,
                         response: data
                     }
@@ -90,10 +91,10 @@ class RegisterFlow extends Component {
         }).catch((error) => {
             this.setState({
                 request: {
-                    data: form,
+                    data: dataURI,
                     err: error.message,
                     response: {
-                        code: -1,
+                        code: undefined,
                         message: "An unexpected error occurred",
                         status: ""
                     }
@@ -112,12 +113,16 @@ class RegisterFlow extends Component {
 
         return (
             <div className={classes.root}>
-                <Paper>
-                    <CardCapture onCapture={this.onCapture} show={isCapturing}/>
-                    {isRetrieving && <Loading/>}
-                    {isShowing && <Results onContinue={this.resetState} registration={this.state.request.response}/>}
-                    {isErred && <ErrorDisplay onContinue={this.resetState} error={this.state.request.response}/>}
-                </Paper>
+                <CardCapture onCapture={this.onCapture} show={isCapturing}/>
+                {isRetrieving && <Loading/>}
+                {isShowing && <Results
+                    onContinue={this.resetState}
+                    registration={this.state.request.response}/>}
+                {isErred && <ErrorDisplay
+                    onContinue={this.resetState}
+                    onResend={() => this.onCapture(this.state.request.data)}
+                    error={this.state.request.response}
+                />}
             </div>
         )
     }
