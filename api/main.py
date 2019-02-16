@@ -55,7 +55,13 @@ urls = [
         ("password", str, False),
     ),
 
-    Route("/user/<string:email>", ["GET"], controllers.get_user)
+    Route("/user/<string:email>", ["GET"], controllers.get_user),
+
+    Route("/student/<string:student_id>", ["UPDATE", "PUT"], controllers.update_user_by_student_id).has_args(
+        ("first_name", str, False),
+        ("last_name", str, False),
+        ("email", str, False),
+    ),
 ]
 
 create_routes(app, urls)

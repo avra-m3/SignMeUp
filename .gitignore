@@ -13,3 +13,6 @@ web/node_modules
 # Ignore Python Compilation Artifacts
 *.pyc
 *.pyo
+
+ignore sensitive files
+*.env

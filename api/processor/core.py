@@ -38,7 +38,7 @@ def link_card(path_to_card: str, user_id: str, club_name: str):
     result = get_card_data(data)
 
     user = User.query.filter_by(student_id=result["user"]["student_id"]).first()
-    club = Club.query.filter_by(name=club_name).first()
+    club = Club.query.filter_by(abbreviation=club_name).first()
 
     if not user:
         user = User(**result["user"])

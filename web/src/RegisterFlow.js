@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import * as PropTypes from "prop-types";
-import Paper from '@material-ui/core/Paper';
 import {withStyles} from '@material-ui/core/styles';
 import config from './config'
 import CardCapture from "./Components/CardCapture";
@@ -11,7 +10,9 @@ import {dataURItoBlob} from "./utils";
 
 
 const styles = theme => ({
-    root: {}
+    root: {
+        height: "100%",
+    }
 
 });
 
@@ -50,13 +51,85 @@ class RegisterFlow extends Component {
         })
     };
 
+    render() {
+        const {classes} = this.props;
+
+        const isCapturing = this.state.request === undefined;
+        const isRetrieving = !isCapturing && this.state.request.response === null;
+        const isShowing = !isCapturing && !isRetrieving && !this.state.request.err;
+        const isErred = !isCapturing && !isRetrieving && !isShowing;
+
+        return (
+            <div className={classes.root}>
+                <CardCapture onCapture={this.onCapture} show={isCapturing}/>
+                {isRetrieving && <Loading/>}
+                {isShowing && <Results
+                    onContinue={this.resetState}
+                    registration={this.state.request.response}
+                    authorization={this.props.authorization}
+                />}
+                {isErred && <ErrorDisplay
+                    onContinue={this.resetState}
+                    onResend={() => this.onCapture(this.state.request.data)}
+                    error={this.state.request.response}
+                />}
+            </div>
+        )
+    }
+
+    onFakeCapture = (dataURI) => {
+        this.setState({
+            data: dataURI,
+            err: null,
+            response: null
+        });
+
+        fetch(`${config.api}/club/csit/register/3599575`, {
+            headers: new Headers({
+                "Authorization": this.props.authorization
+            }),
+        }).then((response) => {
+            return response.json()
+        }).then(data => {
+            if (data.code === 200) {
+                this.setState({
+                    request: {
+                        data: dataURI,
+                        err: null,
+                        response: data
+                    }
+                })
+            } else {
+                this.setState({
+                    request: {
+                        data: dataURI,
+                        err: data.message,
+                        response: data
+                    }
+                })
+            }
+        }).catch((error) => {
+            this.setState({
+                request: {
+                    data: dataURI,
+                    err: error.message,
+                    response: {
+                        code: undefined,
+                        message: "An unexpected error occurred",
+                        status: ""
+                    }
+                }
+            })
+        })
+    };
+
     onCapture = (dataURI) => {
         let form = new FormData();
         let image = dataURItoBlob(dataURI);
         form.append("student_card", image, image.name);
         this.setState({
             request: {
-                data: form,
+                data: dataURI,
                 err: null,
                 response: null
             }
@@ -73,7 +146,7 @@ class RegisterFlow extends Component {
             if (data.code === 200) {
                 this.setState({
                     request: {
-                        data: form,
+                        data: dataURI,
                         err: null,
                         response: data
                     }
@@ -81,7 +154,7 @@ class RegisterFlow extends Component {
             } else {
                 this.setState({
                     request: {
-                        data: form,
+                        data: dataURI,
                         err: data.message,
                         response: data
                     }
@@ -90,10 +163,10 @@ class RegisterFlow extends Component {
         }).catch((error) => {
             this.setState({
                 request: {
-                    data: form,
+                    data: dataURI,
                     err: error.message,
                     response: {
-                        code: -1,
+                        code: undefined,
                         message: "An unexpected error occurred",
                         status: ""
                     }
@@ -101,26 +174,6 @@ class RegisterFlow extends Component {
             })
         })
     };
-
-    render() {
-        const {classes} = this.props;
-
-        const isCapturing = this.state.request === undefined;
-        const isRetrieving = !isCapturing && this.state.request.response === null;
-        const isShowing = !isCapturing && !isRetrieving && !this.state.request.err;
-        const isErred = !isCapturing && !isRetrieving && !isCapturing;
-
-        return (
-            <div className={classes.root}>
-                <Paper>
-                    {isCapturing && <CardCapture onCapture={this.onCapture}/>}
-                    {isRetrieving && <Loading/>}
-                    {isShowing && <Results onContinue={this.resetState} registration={this.state.request.response}/>}
-                    {isErred && <ErrorDisplay onContinue={this.resetState} error={this.state.request.response}/>}
-                </Paper>
-            </div>
-        )
-    }
 
 
 }
