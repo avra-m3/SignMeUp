@@ -32,6 +32,10 @@ class App extends Component {
         });
     }
 
+    deauthorize = () => {
+        this.resetAuthorization("Your credentials were rejected by the server, please log back in and try again.")
+    };
+
 
     render() {
         const isAuthorized = this.state.authorization !== undefined;
@@ -43,7 +47,7 @@ class App extends Component {
                     onHideMessage={this.resetNotify}
                     message={this.state.message}
                     isAuthorized={isAuthorized}
-
+                    club={this.state.register_to}
                 />
                 {
                     !isAuthorized && <LoginForm
@@ -53,14 +57,14 @@ class App extends Component {
                 {
                     !isClubSelected && isAuthorized && <ClubSelector
                         callback={this.setRegisterTo}
-                        deauthorizationCallback={this.resetAuthorization}
+                        deauthorizationCallback={this.deauthorize}
                         authorization={this.state.authorization}
                     />
                 }
                 {
                     isClubSelected && isAuthorized &&
                     <RegisterFlow authorization={this.state.authorization}
-                                  deauthorizationCallback={this.resetAuthorization}
+                                  deauthorizationCallback={this.deauthorize}
                                   club={this.state.register_to}/>
                 }
             </div>
@@ -79,7 +83,7 @@ class App extends Component {
 
         console.log(expiry);
 
-        let timeout = setTimeout(this.resetAuthorization, expiry.getTime() - (new Date()).getTime());
+        let timeout = setTimeout(() => this.resetAuthorization("Your session has expired and you must log in again"), expiry.getTime() - (new Date()).getTime());
         this.setState({authorization: auth, auth_timeout: timeout});
 
         localStorage.setItem("auth", auth);
@@ -89,20 +93,23 @@ class App extends Component {
     setRegisterTo = (club) => {
         this.setState({register_to: club});
         localStorage.setItem("club", club);
-        this.notify(`You're registering new users into ${club}`, "error")
+        this.notify(`You're registering new users into ${club}`, "success")
 
     };
-    resetAuthorization = () => {
-        console.log("Expiring credentials");
+    resetAuthorization = (message) => {
+        if (!message) {
+            message = "You've been logged out"
+        }
         clearTimeout(this.state.auth_timeout);
         this.setState({
             authorization: undefined,
             auth_timeout: undefined,
+            register_to: undefined
         });
         localStorage.removeItem("auth");
         localStorage.removeItem("auth_expiry");
         localStorage.removeItem("club");
-        this.notify("You've been logged out", "error")
+        this.notify(message, "error")
     };
 
     notify = (text, type) => {

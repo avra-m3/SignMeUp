@@ -1,24 +1,19 @@
 import React, {Component} from 'react';
 import * as PropTypes from "prop-types";
 import Typography from '@material-ui/core/Typography';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
 import config from './config'
 import {withStyles} from '@material-ui/core/styles';
 import {handleFetchErrors} from "./utils";
-import Icon from "@material-ui/core/Icon";
 import Button from "@material-ui/core/Button";
 import LinearProgress from "../node_modules/@material-ui/core/LinearProgress/LinearProgress";
 import Paper from "../node_modules/@material-ui/core/Paper/Paper";
+import ClubCard from "./Components/ClubCard";
 
 
 const styles = theme => ({
     root: {
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
     },
     formControl: {
         margin: theme.spacing.unit * 3,
@@ -109,45 +104,32 @@ class ClubSelector extends Component {
                     </div>
                     <Paper className={classes.paper}>
                         <Typography variant="headline" elevation={4}>Error</Typography>
-                        <Typography variant="subtitle1" elevation={4}>Something went wrong connecting to the server</Typography>
-                        <Button variant="contained" color="primary" fullWidth={false} onClick={this.fetchClubList}>Click here to Try
+                        <Typography variant="subtitle1" elevation={4}>Something went wrong connecting to the
+                            server</Typography>
+                        <Button variant="contained" color="primary" fullWidth={false} onClick={this.fetchClubList}>Click
+                            here to Try
                             Again</Button>
                     </Paper>
                 </div>}
-                {!isLoadingClubs && !isLoadingClubsErred && <div className={classes.root}>
-                    <FormControl component="fieldset" className={classes.formControl}>
-                        <FormLabel component="legend">Clubs</FormLabel>
-                        <RadioGroup
-                            aria-label="Clubs"
-                            name="clubs"
-                            className={classes.group}
-                            value={this.state.selected}
-                            onChange={this.selectClub}
-                        >
-                            {clubs.map(club => {
-                                return (
-                                    <FormControlLabel key={club.id} value={club.name} control={<Radio/>}
-                                                      label={club.name}/>)
 
-                            })}
-                        </RadioGroup>
-                    </FormControl>
-                    <Button variant="contained" color="primary" className={classes.button}
-                            onClick={event => this.props.callback(this.state.selected)}>
-                        Continue
-                        <Icon className={classes.rightIcon}>send</Icon>
-                    </Button>
+                {!isLoadingClubs && !isLoadingClubsErred && <div className={classes.root}>
+                    {clubs.map((club) => {
+                            return <ClubCard
+                                key={club.id}
+                                image={club.logo}
+                                name={club.name}
+                                description={club.description}
+                                onSelect={() => this.props.callback(club.name)}
+                                abbreviation={club.abbreviation}
+                            />
+                        }
+                    )}
                 </div>
                 }
             </div>
         )
     }
 
-    selectClub = event => {
-        this.setState({
-            selected: event.target.value
-        })
-    }
 }
 
 export default withStyles(styles)(ClubSelector);

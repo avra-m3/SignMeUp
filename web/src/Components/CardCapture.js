@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
 import * as PropTypes from "prop-types";
-import Paper from '@material-ui/core/Paper';
 import {withStyles} from '@material-ui/core/styles';
-import Camera, { FACING_MODES } from 'react-html5-camera-photo';
+import Camera, {FACING_MODES} from 'react-html5-camera-photo';
 import 'react-html5-camera-photo/build/css/index.css'
 
 
@@ -42,13 +41,11 @@ class CardCapture extends Component {
         const {classes} = this.props;
 
         return (
-            <Paper className={classes.root}>
-                <Camera
-                    onTakePhoto={this.props.onCapture}
-                    idealFacingMode={FACING_MODES.ENVIRONMENT}
-                    isImageMirror={false}
-                />
-            </Paper>
+            <Camera
+                onTakePhoto={this.props.onCapture}
+                idealFacingMode={FACING_MODES.ENVIRONMENT}
+                isImageMirror={false}
+            />
         )
     }
 }

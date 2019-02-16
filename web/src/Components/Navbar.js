@@ -11,8 +11,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import Snackbar from "@material-ui/core/Snackbar";
 import StyledSnacks from "./StyledSnacks";
+import GithubIcon from "../Icons/GithubIcon";
 
-const style ={
+const style = {
     root: {
         flexGrow: 1,
     },
@@ -34,7 +35,9 @@ class Navbar extends React.Component {
             text: PropTypes.string,
             type: PropTypes.string,
             show: PropTypes.bool
-        }).isRequired
+        }).isRequired,
+        club: PropTypes.string,
+        onChangeClub: PropTypes.func,
     };
 
     state = {
@@ -60,8 +63,14 @@ class Navbar extends React.Component {
             <div className={classes.root}>
                 <AppBar position="static">
                     <Toolbar>
-                        <IconButton className={classes.menuButton} color="inherit" aria-label="Menu">
-                            <MenuIcon/>
+                        <IconButton
+                            className={classes.menuButton}
+                            aria-owns={open ? 'menu-appbar' : undefined}
+                            href={"https://github.com/Hammer-Inc/SignMeUp"}
+                            color="inherit"
+
+                        >
+                            <GithubIcon/>
                         </IconButton>
                         <Typography variant="h6" color="inherit" className={classes.grow}>
                             SignMeUp
@@ -76,6 +85,7 @@ class Navbar extends React.Component {
                                 >
                                     <AccountCircle/>
                                 </IconButton>
+
                                 <Menu
                                     id="menu-appbar"
                                     anchorEl={anchorEl}
@@ -116,6 +126,7 @@ class Navbar extends React.Component {
             </div>
         );
     }
+
     doLogOff = () => {
         this.handleClose();
         this.props.onLogOff();
