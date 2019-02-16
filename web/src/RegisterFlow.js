@@ -61,7 +61,7 @@ class RegisterFlow extends Component {
 
         return (
             <div className={classes.root}>
-                <CardCapture onCapture={this.onFakeCapture} show={isCapturing}/>
+                <CardCapture onCapture={this.onCapture} show={isCapturing}/>
                 {isRetrieving && <Loading/>}
                 {isShowing && <Results
                     onContinue={this.resetState}
