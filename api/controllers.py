@@ -90,10 +90,33 @@ def get_registration_by_details(student_id, club_name):
     """
     registration = Registration.query.join(User, User.id == Registration.user_id).join(
         Club, Club.id == Registration.club_id).filter(
-        User.student_id == student_id, Club.name == club_name).first()
+        User.student_id == student_id, Club.abbreviation == club_name).first()
     if not registration:
         raise NotFound("A registration was not found matching the information given")
     return jsonify(registration.to_dict())
+
+
+@http_auth_required
+def update_user_by_student_id(student_id, first_name, last_name, email):
+    """
+    UPDATE the details of an existing user by the student_id
+    :param email: new email
+    :param last_name: new last name
+    :param first_name: new first name
+    :param student_id: new student id
+    :return: A JSON/Flask response containing the Registration object.
+    :raises NotFound: if a registration matching the above does not exist
+    """
+    user = User.query.filter(User.student_id == student_id).first()
+
+    user.first_name = first_name
+    user.last_name = last_name
+    user.email = email
+
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify(user.to_dict())
 
 
 @http_auth_required

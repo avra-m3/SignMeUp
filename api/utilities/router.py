@@ -102,6 +102,8 @@ class Route:
                     raise BadRequest(errstr)
             return func(*args, **kwargs)
 
+        wrapper.__name__ = func.__name__
+        print(wrapper.__name__)
         self.call = wrapper
         return self
 

@@ -3,6 +3,7 @@
   "endpoints": {
     "authorize": "/authorize",
     "clubs": "/club",
-    "register": "/club/{club_id}/register"
+    "register": "/club/{club_id}/register",
+    "user": "/student/{user_id}"
   }
 }
