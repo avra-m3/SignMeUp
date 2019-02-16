@@ -11,21 +11,7 @@ const styles = theme => ({
         paddingBottom: 16,
         marginTop: theme.spacing.unit * 3,
     }),
-    container: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        flexDirection: "column",
-        margin: "auto",
-        maxWidth: "200px"
-    },
-    textField: {
-        marginLeft: theme.spacing.unit,
-        marginRight: theme.spacing.unit,
-        width: 200,
-    },
-    menu: {
-        width: 200,
-    },
+
 });
 
 
@@ -35,17 +21,23 @@ class CardCapture extends Component {
 
     static propTypes = {
         onCapture: PropTypes.func.isRequired,
+        show: PropTypes.bool.isRequired
     };
 
     render() {
         const {classes} = this.props;
-
+        const hiddenStyle = {
+            display: "none"
+        };
         return (
-            <Camera
-                onTakePhoto={this.props.onCapture}
-                idealFacingMode={FACING_MODES.ENVIRONMENT}
-                isImageMirror={false}
-            />
+            <div style={this.props.show ? {} : hiddenStyle}>
+                <Camera
+                    onTakePhoto={this.props.onCapture}
+                    idealFacingMode={FACING_MODES.ENVIRONMENT}
+                    isImageMirror={false}
+                    isMaxResolution={true}
+                />
+            </div>
         )
     }
 }

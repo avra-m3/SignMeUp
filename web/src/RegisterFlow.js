@@ -113,7 +113,7 @@ class RegisterFlow extends Component {
         return (
             <div className={classes.root}>
                 <Paper>
-                    {isCapturing && <CardCapture onCapture={this.onCapture}/>}
+                    <CardCapture onCapture={this.onCapture} show={isCapturing}/>
                     {isRetrieving && <Loading/>}
                     {isShowing && <Results onContinue={this.resetState} registration={this.state.request.response}/>}
                     {isErred && <ErrorDisplay onContinue={this.resetState} error={this.state.request.response}/>}
