@@ -33,7 +33,7 @@ def handle_processing_errors(fn):
 
 
 @handle_processing_errors
-def link_card(path_to_card: str, user_id: str, club_name: str):
+def link_card(path_to_card: str, club_name: str):
     data = request_ocr(path_to_card)
     result = get_card_data(data)
 
