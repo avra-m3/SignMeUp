@@ -1,3 +1,4 @@
+import datetime
 import re
 import tempfile
 import uuid
@@ -50,17 +51,9 @@ def register(club_name):
 
     upload.save(temp.name)
 
-    # Pass the file path to the barcode processor for processing.
-    card_number = barcodes.process(temp.name)
-    match = re.match("^21259(\d{7})\d{2}$", card_number)
-    if match is None:
-        raise PreconditionFailed("Could not detect a valid barcode in the image provided")
+    path_to_card = create(uuid.uuid4(), club_name, temp.name)
 
-    user_id = match.groups()[0]
-
-    path_to_card = create(card_number, club_name, temp.name)
-
-    registration = link_card(path_to_card, user_id, club_name)
+    registration = link_card(path_to_card, club_name)
 
     return jsonify(registration.to_dict())
 
