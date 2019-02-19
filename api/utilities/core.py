@@ -26,11 +26,13 @@ class EnvVariable:
         self.map_to = map_to or key
         self.default = default
 
-        if self.required and not key in os.environ:
+        if self.required and key not in os.environ:
             raise EnvironmentVariableMissing(key)
 
-    def __str__(self):
-        return os.getenv(self.key, self.default)
+    def copy(self, app):
+        if self.key not in os.environ and not self.default:
+            return
+        app.config[self.map_to] = os.getenv(self.key, self.default)
 
 
 def extract_environment_to_flask(app, variables: list):
@@ -41,4 +43,4 @@ def extract_environment_to_flask(app, variables: list):
     :return: None
     """
     for variable in variables:
-        app.config[variable.map_to] = str(variable)
+        variable.copy(app)

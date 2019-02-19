@@ -16,6 +16,7 @@ CORS(app)
 environment = [
     # Application variables
     EnvVariable("GCLOUD_BUCKET", required=True),
+    EnvVariable("GOOGLE_APPLICATION_CREDENTIALS", required=True),
 
     # Important Flask inbuilt variables
     EnvVariable("DEBUG", default=False),
@@ -28,12 +29,14 @@ environment = [
     EnvVariable("DATABASE_URI", required=True, map_to="SQLALCHEMY_DATABASE_URI"),
 
     # Flask inbuilt variables
-    EnvVariable("SERVER_NAME", default="localhost:5000"),
-    EnvVariable("APPLICATION_ROOT", default="/"),
-    EnvVariable("PREFERRED_URL_SCHEME", default="http"),
-    EnvVariable("JSON_SORT_KEYS", default=True),
+    EnvVariable("SERVER_NAME"),
+    EnvVariable("APPLICATION_ROOT"),
+    EnvVariable("PREFERRED_URL_SCHEME"),
+    EnvVariable("JSON_SORT_KEYS"),
     EnvVariable("MAX_CONTENT_LENGTH", default=16 * 1024 * 1024),
 ]
+
+
 urls = [
     Route('/', ['GET'], controllers.index),
     Route('/authorize', ['GET'], controllers.authorize),
@@ -56,11 +59,10 @@ urls = [
     ),
 ]
 
+create_routes(app, urls)
+extract_environment_to_flask(app, environment)
+
 with app.app_context():
-    print("Extracting Environment...")
-    extract_environment_to_flask(app, environment)
-    print("Initializing App...")
-    create_routes(app, urls)
     print("Creating Database")
     db.init_app(app)
     print("Running Migrations...")
