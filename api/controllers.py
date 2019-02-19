@@ -1,5 +1,3 @@
-import datetime
-import re
 import tempfile
 import uuid
 
@@ -15,8 +13,7 @@ from google.cloud import storage
 from model import Registration, User, Club, Role, BaseModel
 from model.database import db
 from processor.core import link_card
-from utilities import barcodes
-from utilities.exception_router import NotAcceptable, NotFound, PreconditionFailed
+from utilities.exception_router import NotAcceptable, NotFound, BadRequest
 
 
 def index():
@@ -44,6 +41,9 @@ def register(club_name):
     # Check the file is not empty (This is caused by the browser)
     if upload.filename == '':
         raise NotAcceptable("The file passed had no file name")
+
+    if not Club.query.filter(Club.abbreviation == club_name).first():
+        raise BadRequest("Could not locate the requested club ({})".format(club_name))
 
     # Make a temporary file and write the upload to it.
     temp = tempfile.NamedTemporaryFile()

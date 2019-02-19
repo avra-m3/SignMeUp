@@ -119,7 +119,7 @@ class ClubSelector extends Component {
                                 image={club.logo}
                                 name={club.name}
                                 description={club.description}
-                                onSelect={() => this.props.callback(club.name)}
+                                onSelect={() => this.props.callback(club.abbreviation)}
                                 abbreviation={club.abbreviation}
                             />
                         }
