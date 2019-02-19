@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import * as PropTypes from "prop-types";
-import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import {withStyles} from '@material-ui/core/styles';
@@ -69,7 +68,8 @@ class ErrorDisplay extends Component {
                             <Button size="small" color="primary" onClick={this.props.onContinue}>
                                 Continue
                             </Button>
-                            <Button size="small" color="secondary" disabled={error.code !== undefined}>
+                            <Button size="small" color="secondary" disabled={error.code !== undefined}
+                                    onClick={this.props.onResend}>
                                 Try again (resend)
                             </Button>
                         </CardActions>
