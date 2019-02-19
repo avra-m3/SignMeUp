@@ -16,5 +16,5 @@ services:
    build:
      context: ./proxy
    ports:
-    - "50080:80"
+    - "8080:80"
    restart: always
