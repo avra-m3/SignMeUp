@@ -6,8 +6,6 @@ import Card from "../../node_modules/@material-ui/core/Card/Card";
 import CardActionArea from "../../node_modules/@material-ui/core/CardActionArea/CardActionArea";
 import CardContent from "../../node_modules/@material-ui/core/CardContent/CardContent";
 import Typography from "@material-ui/core/Typography";
-import CardActions from "@material-ui/core/CardActions";
-import Button from "@material-ui/core/Button";
 
 
 const styles = theme => ({
@@ -18,7 +16,7 @@ const styles = theme => ({
     progress: {
         flexGrow: 1,
     },
-     paper: {
+    paper: {
         ...theme.mixins.gutters(),
         paddingTop: theme.spacing.unit * 2,
         paddingBottom: theme.spacing.unit * 2,

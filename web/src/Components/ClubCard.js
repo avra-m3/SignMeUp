@@ -5,18 +5,24 @@ import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
-import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
+import CardHeader from "../../node_modules/@material-ui/core/CardHeader/CardHeader";
+import Avatar from "../../node_modules/@material-ui/core/Avatar/Avatar";
+import red from "@material-ui/core/es/colors/red";
 
 const styles = {
     card: {
-        maxWidth: 345,
+        maxWidth: 300,
+        margin: "20px 5px"
     },
     media: {
         maxHeight: 140,
         objectFit: 'cover',
 
+    },
+    avatar: {
+        backgroundColor: red[500],
     },
 };
 
@@ -31,20 +37,20 @@ class ClubCard extends React.Component {
     };
 
     render() {
-        const {classes, name, description, onSelect, key, abbreviation, image} = this.props;
+        const {classes, name, description, onSelect, key, abbreviation} = this.props;
         return (
             <Card key={key} className={classes.card}>
                 <CardActionArea>
-                    {image && <CardMedia
-                        className={classes.media}
+                    <CardHeader
+                        avatar={
+                            <Avatar aria-label="Logo" className={classes.avatar}>
+                                {abbreviation.toUpperCase()}
+                            </Avatar>
+                        }
                         title={name}
-                        image={image}
-
-                    />}
+                        subheader="RUSU Affiliated"
+                    />
                     <CardContent>
-                        <Typography gutterBottom variant="h5" component="h2">
-                            {name}
-                        </Typography>
                         <Typography component="p">
                             {description}
                         </Typography>

@@ -5,7 +5,6 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
@@ -94,15 +93,17 @@ class Navbar extends React.Component {
                                         horizontal: 'right',
                                     }}
                                     transformOrigin={{
-                                        vertical: 'top',
+                                        vertical: 'bottom',
                                         horizontal: 'right',
                                     }}
                                     open={open}
                                     onClose={this.handleClose}
                                 >
                                     <MenuItem disabled={true}>About</MenuItem>
+                                    <MenuItem disabled={this.props.club === undefined} onClick={()=>this.props.onChangeClub(undefined)}>
+                                        Switch Clubs
+                                    </MenuItem>
                                     <MenuItem onClick={this.doLogOff}>Log Out</MenuItem>
-
                                 </Menu>
                             </div>
                         )}
