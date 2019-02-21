@@ -4,6 +4,8 @@ import LoginForm from "./LoginForm";
 import ClubSelector from "./ClubSelector";
 import RegisterFlow from "./RegisterFlow";
 import Navbar from "./Components/Navbar";
+import config from "./config";
+import {handleFetchErrors} from "./utils";
 
 
 class App extends Component {
@@ -16,19 +18,22 @@ class App extends Component {
             type: undefined
         },
         message_timeout: undefined,
+        clubs: [],
+        isLoadingClubs: false
     };
 
     componentDidMount() {
         let auth = localStorage.getItem("auth");
         let club = localStorage.getItem("club");
 
-        let expiry = new Date(localStorage.getItem("auth_expiry"));
-        let timeout = setTimeout(this.resetAuthorization, expiry.getTime() - (new Date()).getTime());
+        if (auth !== null) {
+            let expiry = new Date(localStorage.getItem("auth_expiry"));
+            this.handleAuthTimeout(expiry);
+        }
 
         this.setState({
             authorization: auth || undefined,
             register_to: club || undefined,
-            auth_timeout: timeout
         });
     }
 
@@ -43,22 +48,25 @@ class App extends Component {
         return (
             <div>
                 <Navbar
-                    onLogOff={this.resetAuthorization}
-                    onHideMessage={this.resetNotify}
                     message={this.state.message}
                     isAuthorized={isAuthorized}
                     club={this.state.register_to}
+                    onLogOff={this.resetAuthorization}
+                    onChangeClub={this.updateClub}
+                    onHideMessage={this.resetNotify}
                 />
                 {
                     !isAuthorized && <LoginForm
                         callback={this.setAuthorization}
+                        notify={this.notify}
                     />
                 }
                 {
                     !isClubSelected && isAuthorized && <ClubSelector
                         callback={this.setRegisterTo}
-                        deauthorizationCallback={this.deauthorize}
-                        authorization={this.state.authorization}
+                        clubs={this.state.clubs}
+                        isLoadingClubs={this.state.isLoadingClubs}
+                        triggerLoad={this.fetchClubList}
                     />
                 }
                 {
@@ -80,11 +88,8 @@ class App extends Component {
         } else {
             expiry.setHours(expiry.getHours() + 3);
         }
-
-        console.log(expiry);
-
-        let timeout = setTimeout(() => this.resetAuthorization("Your session has expired and you must log in again"), expiry.getTime() - (new Date()).getTime());
-        this.setState({authorization: auth, auth_timeout: timeout});
+        this.handleAuthTimeout(expiry);
+        this.setState({authorization: auth});
 
         localStorage.setItem("auth", auth);
         localStorage.setItem("auth_expiry", expiry.toJSON());
@@ -112,6 +117,18 @@ class App extends Component {
         this.notify(message, "error")
     };
 
+    updateClub = (club) => {
+        if (!club) {
+            localStorage.removeItem("club");
+            club = undefined;
+        } else {
+            localStorage.setItem("club", club);
+        }
+        this.setState({
+            register_to: club
+        })
+    };
+
     notify = (text, type) => {
         this.setState({
             message: {
@@ -130,6 +147,46 @@ class App extends Component {
                 show: false
             }
         })
+    };
+
+    fetchClubList = () => {
+        this.setState({
+            isLoadingClubs: true
+        });
+        fetch(`${config.api}${config.endpoints.clubs}`, {
+            headers: new Headers({
+                Authorization: this.state.authorization
+            })
+        }).then(handleFetchErrors).then(data => {
+            this.setState({
+                clubs: data.data,
+                isLoadingClubs: false
+            })
+        }).catch((err) => {
+            console.log(err);
+            if (err.message === "401") {
+                console.log("Request DeAuth (401)");
+                this.deauthorize();
+            }
+            this.setState({
+                clubs: undefined,
+                isLoadingClubs: false
+            })
+        })
+    };
+
+    handleAuthTimeout = (expiry) => {
+        if ((new Date()).getTime() > expiry.getTime()){
+             this.resetAuthorization("Your session has expired and you must log in again")
+        }else{
+            let tomorrow = new Date();
+            tomorrow.setHours(tomorrow.getHours() + 24);
+            let nextTimeout = tomorrow.getTime() < expiry.getTime() ? tomorrow.getTime() : expiry.getTime();
+            nextTimeout = nextTimeout - (new Date()).getTime()
+            this.setState({
+                auth_timeout: setTimeout(()=>this.handleAuthTimeout(expiry), nextTimeout)
+            })
+        }
     }
 
 }

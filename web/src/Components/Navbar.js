@@ -5,13 +5,14 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import Snackbar from "@material-ui/core/Snackbar";
 import StyledSnacks from "./StyledSnacks";
 import GithubIcon from "../Icons/GithubIcon";
+import Warning from "@material-ui/core/es/internal/svg-icons/Warning";
+import orange from "@material-ui/core/es/colors/orange";
 
 const style = {
     root: {
@@ -24,6 +25,20 @@ const style = {
         marginLeft: -12,
         marginRight: 20,
     },
+    alertBar: {
+        backgroundColor: "orange",
+        borderBottomLeftRadius: "10px",
+        borderBottomRightRadius: "10px",
+        justifyContent: "center",
+        display: "flex",
+        padding: "10px",
+    },
+    alertIcon: {
+        marginRight: "10px",
+    },
+    alertText: {
+        color: "black",
+    }
 };
 
 class Navbar extends React.Component {
@@ -75,6 +90,7 @@ class Navbar extends React.Component {
                         <Typography variant="h6" color="inherit" className={classes.grow}>
                             SignMeUp
                         </Typography>
+
                         {isAuthorized && (
                             <div>
                                 <IconButton
@@ -94,20 +110,30 @@ class Navbar extends React.Component {
                                         horizontal: 'right',
                                     }}
                                     transformOrigin={{
-                                        vertical: 'top',
+                                        vertical: 'bottom',
                                         horizontal: 'right',
                                     }}
                                     open={open}
                                     onClose={this.handleClose}
                                 >
                                     <MenuItem disabled={true}>About</MenuItem>
+                                    <MenuItem disabled={this.props.club === undefined}
+                                              onClick={() => this.props.onChangeClub(undefined)}>
+                                        Switch Clubs
+                                    </MenuItem>
                                     <MenuItem onClick={this.doLogOff}>Log Out</MenuItem>
-
                                 </Menu>
                             </div>
                         )}
                     </Toolbar>
                 </AppBar>
+                <div className={classes.alertBar}>
+                    <Warning className={classes.alertIcon}/>
+                    <span className={classes.alertText}>
+                        SignMeUp Tech Demo - Report issues on <a className={classes.alertText}
+                                                                 href="https://github.com/Hammer-Inc/SignMeUp">github</a>
+                    </span>
+                </div>
                 <Snackbar
                     anchorOrigin={{
                         vertical: 'bottom',
