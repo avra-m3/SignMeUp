@@ -17,16 +17,6 @@ const styles = theme => ({
 });
 
 
-const modes = {
-    // Show Camera
-    capture: "capture",
-    // Show loading
-    retrieve: "retrieve",
-    // Show data
-    show: "show"
-};
-
-
 class RegisterFlow extends Component {
     /**
      * This Component handles everything to do with the registration flow, it is provided the club being registered
@@ -78,6 +68,9 @@ class RegisterFlow extends Component {
     }
 
     onFakeCapture = (dataURI) => {
+        /**
+         * Use this facade method to prevent upload and other unwanted side-effects when it comes to registering
+         */
         this.setState({
             data: dataURI,
             err: null,
@@ -124,6 +117,9 @@ class RegisterFlow extends Component {
     };
 
     onCapture = (dataURI) => {
+        /**
+         * Sends a request upstream to begin the registration process.
+         */
         let form = new FormData();
         let image = dataURItoBlob(dataURI);
         form.append("student_card", image, image.name);

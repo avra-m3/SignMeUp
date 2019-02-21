@@ -132,11 +132,13 @@ class LoginForm extends Component {
         }).then((response) => {
             if (response.ok) {
                 console.log("Running callback");
-                this.props.callback('Basic ' + btoa(`${this.state.username}:${this.state.password}`), this.state.remember)
+                return response.json()
             } else {
-                this.props.notify("We couldn't log you in with that ({})".format(response.statusText), "error");
+                this.props.notify(`We couldn't log you in with that (${response.status})`, "error");
                 console.log(response)
             }
+        }).then(data => {
+            this.props.callback(`Bearer ${data.token}`, this.state.remember)
         }).catch(error => {
             console.log(error);
             this.props.notify("An error occurred while attempting to validate those credentials", "error")

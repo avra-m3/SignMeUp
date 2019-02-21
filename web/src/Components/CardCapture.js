@@ -1,19 +1,7 @@
 import React, {Component} from 'react';
 import * as PropTypes from "prop-types";
-import {withStyles} from '@material-ui/core/styles';
 import Camera, {FACING_MODES} from 'react-html5-camera-photo';
 import 'react-html5-camera-photo/build/css/index.css'
-
-
-const styles = theme => ({
-    root: theme.mixins.gutters({
-        paddingTop: 16,
-        paddingBottom: 16,
-        marginTop: theme.spacing.unit * 3,
-    }),
-
-});
-
 
 class CardCapture extends Component {
 
@@ -25,7 +13,6 @@ class CardCapture extends Component {
     };
 
     render() {
-        const {classes} = this.props;
         const hiddenStyle = {
             display: "none"
         };
@@ -42,4 +29,4 @@ class CardCapture extends Component {
     }
 }
 
-export default withStyles(styles)(CardCapture);
+export default CardCapture;

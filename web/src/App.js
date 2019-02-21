@@ -25,17 +25,15 @@ class App extends Component {
     componentDidMount() {
         let auth = localStorage.getItem("auth");
         let club = localStorage.getItem("club");
-        let timeout = undefined;
 
         if (auth !== null) {
             let expiry = new Date(localStorage.getItem("auth_expiry"));
-            timeout = setTimeout(this.resetAuthorization, expiry.getTime() - (new Date()).getTime());
+            this.handleAuthTimeout(expiry);
         }
 
         this.setState({
             authorization: auth || undefined,
             register_to: club || undefined,
-            auth_timeout: timeout
         });
     }
 
@@ -90,9 +88,8 @@ class App extends Component {
         } else {
             expiry.setHours(expiry.getHours() + 3);
         }
-        console.log(expiry);
-        let timeout = setTimeout(() => this.resetAuthorization("Your session has expired and you must log in again"), expiry.getTime() - (new Date()).getTime());
-        this.setState({authorization: auth, auth_timeout: timeout});
+        this.handleAuthTimeout(expiry);
+        this.setState({authorization: auth});
 
         localStorage.setItem("auth", auth);
         localStorage.setItem("auth_expiry", expiry.toJSON());
@@ -177,6 +174,20 @@ class App extends Component {
             })
         })
     };
+
+    handleAuthTimeout = (expiry) => {
+        if ((new Date()).getTime() > expiry.getTime()){
+             this.resetAuthorization("Your session has expired and you must log in again")
+        }else{
+            let tomorrow = new Date();
+            tomorrow.setHours(tomorrow.getHours() + 24);
+            let nextTimeout = tomorrow.getTime() < expiry.getTime() ? tomorrow.getTime() : expiry.getTime();
+            nextTimeout = nextTimeout - (new Date()).getTime()
+            this.setState({
+                auth_timeout: setTimeout(()=>this.handleAuthTimeout(expiry), nextTimeout)
+            })
+        }
+    }
 
 }
 
