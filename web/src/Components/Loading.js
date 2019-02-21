@@ -11,7 +11,7 @@ import Typography from "@material-ui/core/Typography";
 const styles = theme => ({
     root: {
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
     },
     progress: {
         flexGrow: 1,
