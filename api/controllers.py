@@ -6,14 +6,15 @@ from flask import current_app as app
 from flask import request as inbound
 from flask_api import status
 from flask_login import current_user
-from flask_security import http_auth_required, roles_accepted, SQLAlchemyUserDatastore
+from flask_security import roles_accepted, SQLAlchemyUserDatastore, http_auth_required
 from flask_security.utils import hash_password
 from google.cloud import storage
 
 from model import Registration, User, Club, Role, BaseModel
 from model.database import db
 from processor.core import link_card
-from utilities.exception_router import NotAcceptable, NotFound, BadRequest
+from utilities.exception_router import NotAcceptable, NotFound, BadRequest, Forbidden
+from utilities.security import require_auth_token
 
 
 def index():
@@ -24,7 +25,7 @@ def index():
     return Response("Online", status.HTTP_200_OK)
 
 
-@http_auth_required
+@require_auth_token
 def register(club_name):
     """
     PUT a registration into the system
@@ -58,7 +59,7 @@ def register(club_name):
     return jsonify(registration.to_dict())
 
 
-@http_auth_required
+@require_auth_token
 def get_registration(registration_id):
     """
     GET the details of an existing registration
@@ -72,7 +73,7 @@ def get_registration(registration_id):
     return jsonify(registration.to_dict())
 
 
-@http_auth_required
+@require_auth_token
 def get_registration_by_details(student_id, club_name):
     """
     GET the details of an existing registration by the registration information
@@ -89,7 +90,7 @@ def get_registration_by_details(student_id, club_name):
     return jsonify(registration.to_dict())
 
 
-@http_auth_required
+@require_auth_token
 def update_user_by_student_id(student_id, first_name, last_name, email):
     """
     UPDATE the details of an existing user by the student_id
@@ -112,7 +113,7 @@ def update_user_by_student_id(student_id, first_name, last_name, email):
     return jsonify(user.to_dict())
 
 
-@http_auth_required
+@require_auth_token
 def store(path: str, name: str):
     """
     Store path into the remote Storage with an object id of name
@@ -128,7 +129,7 @@ def store(path: str, name: str):
     return upload.public_url
 
 
-@http_auth_required
+@require_auth_token
 @roles_accepted("admin")
 def create_user(email: str, password: str):
     datastore = SQLAlchemyUserDatastore(db, User, Role)
@@ -141,7 +142,7 @@ def create_user(email: str, password: str):
     return jsonify(User.query.filter(User.email == email).first().to_dict())
 
 
-@http_auth_required
+@require_auth_token
 def get_user(email):
     user = User.query.filter(User.email == email).first()
     if not user:
@@ -149,7 +150,7 @@ def get_user(email):
     return jsonify(user.to_dict())
 
 
-@http_auth_required
+@require_auth_token
 def get_clubs():
     return jsonify({
         "data": [BaseModel.to_dict(club) for club in Club.query.all()]
@@ -158,11 +159,17 @@ def get_clubs():
 
 @http_auth_required
 def authorize():
-    return jsonify({
-        "email": current_user.email,
-        "active": current_user.active,
-        "id": current_user.id
-    })
+    """
+    Generate an authorization token from a username/password
+    :return:
+    """
+    if current_user.active:
+        return jsonify({
+            "email": current_user.email,
+            "active": current_user.active,
+            "token": current_user.get_auth_token(),
+        })
+    raise Forbidden("Account has been deactivated")
 
 
 def create(card_number, club_name, path):

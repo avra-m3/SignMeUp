@@ -57,7 +57,8 @@ class LoginForm extends Component {
     };
 
     static propTypes = {
-        callback: PropTypes.func.isRequired
+        callback: PropTypes.func.isRequired,
+        notify: PropTypes.func.isRequired
     };
 
 
@@ -131,18 +132,16 @@ class LoginForm extends Component {
         }).then((response) => {
             if (response.ok) {
                 console.log("Running callback");
-                this.props.callback('Basic ' + btoa(`${this.state.username}:${this.state.password}`), this.state.remember)
+                return response.json()
             } else {
-                this.setState({
-                    result: response.status
-                });
+                this.props.notify(`We couldn't log you in with that (${response.status})`, "error");
                 console.log(response)
             }
+        }).then(data => {
+            this.props.callback(`Bearer ${data.token}`, this.state.remember)
         }).catch(error => {
-            this.setState({
-                result: error.valueOf()
-            });
-            console.log(error)
+            console.log(error);
+            this.props.notify("An error occurred while attempting to validate those credentials", "error")
         });
         event.preventDefault()
     }

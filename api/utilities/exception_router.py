@@ -97,3 +97,13 @@ class Conflict(APIException):
 class NotFound(APIException):
     _status = 404
     _detail = "Not Found"
+
+
+class Unauthorized(APIException):
+    _status = 401
+    _detail = "Unauthorized"
+
+
+class Forbidden(APIException):
+    _status = 403
+    _detail = "Forbidden"

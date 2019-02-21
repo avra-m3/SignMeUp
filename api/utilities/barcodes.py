@@ -1,7 +1,7 @@
 import re
 
 import cv2
-import numpy as np
+import pytesseract
 import pyzbar.pyzbar as pyzbar
 
 from utilities.exception_router import PreconditionFailed, NotAcceptable
@@ -20,15 +20,10 @@ def optimize(image):
     gray = cv2.bitwise_not(gray)
     thresh = cv2.threshold(gray, 0, 255,
                            cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    thresh = (255-thresh)
     cv2.imshow("thresh", thresh)
-    coords = np.column_stack(np.where(thresh > 0))
-    angle = cv2.minAreaRect(coords)[-1]
-    if angle < -45:
-        angle = -(90 + angle)
-    else:
-        angle = -angle
-
-    print(angle)
+    pytesseract.pytesseract.tesseract_cmd = "C:\\Program Files (x86)\\Tesseract-OCR\\tesseract.exe"
+    print(pytesseract.image_to_data(thresh))
 
 
 def decode(im):
@@ -56,3 +51,7 @@ def process(path: str) -> str:
         raise NotAcceptable("Uploaded file was in an invalid format.")
     return decode(im)
 
+
+if __name__ == "__main__":
+    optimize(cv2.imread("C:\\Users\\avram\\PycharmProjects\\csit_student_signup\\cache\\20180719114310.temp.png"))
+    k = cv2.waitKey(0)

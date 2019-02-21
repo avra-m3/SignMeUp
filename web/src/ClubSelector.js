@@ -1,9 +1,7 @@
 import React, {Component} from 'react';
 import * as PropTypes from "prop-types";
 import Typography from '@material-ui/core/Typography';
-import config from './config'
 import {withStyles} from '@material-ui/core/styles';
-import {handleFetchErrors} from "./utils";
 import Button from "@material-ui/core/Button";
 import LinearProgress from "../node_modules/@material-ui/core/LinearProgress/LinearProgress";
 import Paper from "../node_modules/@material-ui/core/Paper/Paper";
@@ -14,6 +12,8 @@ const styles = theme => ({
     root: {
         display: 'flex',
         flexDirection: 'row',
+        justifyContent: 'center',
+        flexWrap: 'wrap'
     },
     formControl: {
         margin: theme.spacing.unit * 3,
@@ -43,55 +43,27 @@ class ClubSelector extends Component {
 
     state = {
         available: null,
-        selected: undefined
     };
 
     static propTypes = {
         callback: PropTypes.func.isRequired,
-        authorization: PropTypes.string.isRequired,
-        deauthorizationCallback: PropTypes.func.isRequired,
+        clubs: PropTypes.array.isRequired,
+        isLoadingClubs: PropTypes.bool.isRequired,
+        triggerLoad: PropTypes.func.isRequired,
     };
 
-    componentDidMount() {
-        this.fetchClubList();
+    componentWillMount() {
+        this.props.triggerLoad()
     }
 
-    fetchClubList = () => {
-        this.setState({
-            available: null
-        });
-        fetch(`${config.api}${config.endpoints.clubs}`, {
-            headers: new Headers({
-                Authorization: this.props.authorization
-            })
-        }).then(handleFetchErrors).then(data => {
-            this.setState({
-                available: data.data,
-                selected: data.data.length > 0 ? data.data[0].name : undefined
-            })
-        }).catch((err) => {
-            console.log(err);
-            if (err.message === "401") {
-                console.log("Request DeAuth (401)");
-                this.props.deauthorizationCallback();
-            }
-            this.setState({
-                available: undefined
-            })
-        })
-    };
-
     render() {
-        const {classes} = this.props;
+        const {classes, isLoadingClubs, clubs} = this.props;
 
-        const isLoadingClubs = this.state.available === null;
-        const isLoadingClubsErred = this.state.available === undefined;
-        const clubs = this.state.available;
+        const isLoadingClubsErred = !isLoadingClubs && clubs.length === 0;
 
 
         return (
             <div>
-
                 {isLoadingClubs && <div className={classes.root}>
                     <div className={classes.progress}>
                         <LinearProgress/>
@@ -112,7 +84,7 @@ class ClubSelector extends Component {
                     </Paper>
                 </div>}
 
-                {!isLoadingClubs && !isLoadingClubsErred && <div className={classes.root}>
+                {clubs.length > 0 && <div className={classes.root}>
                     {clubs.map((club) => {
                             return <ClubCard
                                 key={club.id}
