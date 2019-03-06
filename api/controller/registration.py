@@ -1,9 +1,8 @@
 from flask import jsonify
 
 from model import Registration, User, Club
-from model.database import db
-from modules.ocr import attempt_recognition
-from modules.ocr.request import request_oct_from_image
+from processor.modules.ocr import attempt_recognition
+from processor.modules.ocr.request import request_oct_from_image
 from utilities.database import insert_new_registration
 from utilities.exception_router import NotFound, BadRequest
 from utilities.file_handling import safely_accept_file
