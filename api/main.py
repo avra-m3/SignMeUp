@@ -4,6 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 
+import controller
 import controllers
 from model.database import db
 from utilities import security
@@ -41,9 +42,9 @@ urls = [
     Route('/', ['GET'], controllers.index),
     Route('/authorize', ['GET'], controllers.authorize),
     Route('/club', ['GET'], controllers.get_clubs),
-    Route('/club/<string:club_name>/register', ['PUT', 'POST'], controllers.register),
-    Route("/club/<string:club_name>/register/<string:student_id>", ['GET'], controllers.get_registration_by_details),
-    Route('/registration/<string:registration_id>', ['GET'], controllers.get_registration),
+    # Route('/club/<string:club_name>/register', ['PUT', 'POST'], controllers.register),
+    # Route("/club/<string:club_name>/register/<string:student_id>", ['GET'], controllers.get_registration_by_details),
+    # Route('/registration/<string:registration_id>', ['GET'], controllers.get_registration),
 
     Route("/user", ["PUT", "POST"], controllers.create_user).has_args(
         ("email", str, False),
@@ -57,6 +58,12 @@ urls = [
         ("last_name", str, False),
         ("email", str, False),
     ),
+
+    # Registration routes
+    Route('/club/<string:club_name>/register', ['PUT', 'POST'], controller.registration.create),
+    Route('/club/<string:club_name>/register/<string:student_id>', ['GET'], controller.registration.get),
+    Route('/club/<string:club_name>/register', ['GET'], controller.registration.list),
+
 ]
 
 create_routes(app, urls)

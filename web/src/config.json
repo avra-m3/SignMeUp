@@ -1,5 +1,5 @@
 {
-  "api": "https://signmeup.avrami.me/api",
+  "api": "http://localhost:5000",
   "endpoints": {
     "authorize": "/authorize",
     "clubs": "/club",

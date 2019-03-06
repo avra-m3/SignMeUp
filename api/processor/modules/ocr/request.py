@@ -62,6 +62,24 @@ def legacy_request_ocr(url: str) -> List[dict]:
     return data["responses"][0]["textAnnotations"][1:]
 
 
+def request_oct_from_image(path: str) -> list:
+    client = vision.ImageAnnotatorClient()
+
+    with open(path, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.types.Image(content=content)
+
+    try:
+        response = client.text_detection(image=image)
+
+        if not response.text_annotations:
+            raise RuntimeError(str(response))
+    except Exception:
+        raise APIException("Upstream gateway returned an unacceptable response", status=502)
+    return response_as_dict(response.text_annotations)
+
+
 def request_ocr(url: str) -> list:
     client = vision.ImageAnnotatorClient()
     try:
