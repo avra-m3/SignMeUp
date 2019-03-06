@@ -22,7 +22,6 @@ class CardCapture extends Component {
                     onTakePhoto={this.props.onCapture}
                     idealFacingMode={FACING_MODES.ENVIRONMENT}
                     isImageMirror={false}
-                    isMaxResolution={true}
                 />
             </div>
         )
