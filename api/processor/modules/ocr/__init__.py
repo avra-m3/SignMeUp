@@ -3,7 +3,7 @@ import datetime
 
 def attempt_recognition(provider, path: str):
     result = provider(path)
-    from modules.ocr.process import get_card_data
+    from processor.modules.ocr.process import get_card_data
     data = get_card_data(result)
 
     return User(data["user"]), Card(data["card"])
