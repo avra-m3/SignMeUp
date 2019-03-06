@@ -207,11 +207,11 @@ class Results extends Component {
                         </Button>
                         <Button
                             variant="contained"
-                            color="secondary"
+                            color="primary"
                             className={classes.button}
                             onClick={this.props.onContinue}
                         >
-                            Cancel <Close className={classes.rightIcon}/>
+                            Continue <Close className={classes.rightIcon}/>
                         </Button>
                     </div>
 
